@@ -58,6 +58,12 @@ MARE = {
     'door':   b64('_assets/mare_door.jpg'),      # standing in the doorway across the room
     'phone':  b64('_assets/mare_phone.jpg'),     # reflected in your phone screen
     'split':  b64('_assets/mare_split.jpg'),     # face splitting open into a maw
+    # v11 — more brutal variety
+    'gape':   b64('_assets/mare_gape.jpg'),      # throat of endless teeth rings
+    'scream': b64('_assets/mare_scream.jpg'),    # screaming maw + tongue
+    'crawl':  b64('_assets/mare_crawl.jpg'),     # crawling down the corridor
+    'bloodeye': b64('_assets/mare_bloodeye.jpg'),# single glowing eye macro
+    'window': b64('_assets/mare_window.jpg'),    # face against the window
 }
 
 def b64mp3(path):
@@ -111,6 +117,53 @@ CSS = r'''
         #name-gate .ng-btn:hover { background: rgba(220,20,60,0.18); box-shadow: 0 0 14px rgba(255,26,64,0.5); }
         #name-gate .ng-skip { color: #7a828a; border-color: rgba(120,120,130,0.4); font-weight: 400; }
 
+        /* ---- v11: fake permission prompt (mimics a browser dialog) ---- */
+        #perm-prompt {
+            position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-140%);
+            z-index: 994; width: min(94vw, 420px);
+            background: #1e1f22; color: #e8eaed; border-radius: 10px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            font-family: system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+            opacity: 0; transition: transform 0.35s cubic-bezier(.2,.9,.3,1.3), opacity 0.35s;
+        }
+        #perm-prompt.on { transform: translateX(-50%) translateY(0); opacity: 1; }
+        #perm-prompt.shake { animation: ppShake 0.28s steps(2) 4; }
+        @keyframes ppShake { 0%{transform:translateX(-50%) translateY(0);} 50%{transform:translateX(calc(-50% - 6px)) translateY(0);} 100%{transform:translateX(-50%) translateY(0);} }
+        #perm-prompt .pp-box { padding: 16px 18px; }
+        #perm-prompt .pp-top { font-size: 0.9rem; margin-bottom: 12px; color: #cfd2d6; }
+        #perm-prompt .pp-dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#ea4335; margin-right:8px; vertical-align: middle; box-shadow:0 0 8px #ea4335; }
+        #perm-prompt #pp-origin { color:#8ab4f8; }
+        #perm-prompt .pp-body { margin-bottom: 14px; }
+        #perm-prompt .pp-line { font-size:0.92rem; padding:5px 0; color:#e8eaed; }
+        #perm-prompt .pp-ico { margin-right:8px; }
+        #perm-prompt .pp-row { display:flex; justify-content:flex-end; gap:10px; }
+        #perm-prompt .pp-btn { padding:8px 16px; border-radius:6px; border:none; cursor:pointer; font-size:0.9rem; font-weight:600; }
+        #perm-prompt .pp-block { background:transparent; color:#8ab4f8; }
+        #perm-prompt .pp-allow { background:#8ab4f8; color:#202124; }
+        #perm-prompt .pp-allow:hover { background:#aecbfa; }
+
+        /* ---- v11: fake download bar (bottom-left, Chrome-ish) ---- */
+        #dl-bar {
+            position: fixed; left: 16px; bottom: 16px; z-index: 993; width: min(92vw, 360px);
+            background: #2b2c2f; color: #e8eaed; border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            font-family: system-ui, 'Segoe UI', Roboto, Arial, sans-serif;
+            transform: translateY(160%); opacity: 0; transition: transform 0.4s ease, opacity 0.4s;
+        }
+        #dl-bar.on { transform: translateY(0); opacity: 1; }
+        #dl-bar .dl-inner { display:flex; align-items:center; gap:12px; padding:12px 14px; }
+        #dl-bar .dl-ico { font-size:1.3rem; color:#8ab4f8; }
+        #dl-bar .dl-main { flex:1; min-width:0; }
+        #dl-bar .dl-name { font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        #dl-bar .dl-track { height:5px; background:#4a4b4f; border-radius:3px; margin:7px 0 4px; overflow:hidden; }
+        #dl-bar .dl-fill { height:100%; width:0%; background:#8ab4f8; transition: width 0.2s linear; }
+        #dl-bar .dl-sub { font-size:0.76rem; color:#b0b3b8; }
+        #dl-bar .dl-x { cursor:pointer; color:#b0b3b8; font-size:0.9rem; padding:4px; }
+        #dl-bar .dl-x:hover { color:#fff; }
+        #dl-bar.danger .dl-name { color:#ff6b6b; }
+        #dl-bar.danger .dl-fill { background:#ea4335; }
+        #dl-bar.danger .dl-sub { color:#ff9a9a; }
+
         #mare-layer {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             display: none; justify-content: center; align-items: center;
@@ -152,6 +205,11 @@ CSS = r'''
         #mare-layer.mare-door #mare-img { filter: contrast(1.5) brightness(0.6) saturate(1.2); }
         #mare-layer.mare-phone #mare-img { filter: contrast(1.55) brightness(0.75) saturate(1.15); }
         #mare-layer.mare-split #mare-img { filter: contrast(1.75) saturate(1.7) brightness(0.9); }
+        #mare-layer.mare-gape #mare-img { filter: contrast(1.8) saturate(1.6) brightness(0.9); }
+        #mare-layer.mare-scream #mare-img { filter: contrast(1.8) saturate(1.7) brightness(0.92); }
+        #mare-layer.mare-crawl #mare-img { filter: contrast(1.6) saturate(1.3) brightness(0.7); }
+        #mare-layer.mare-bloodeye #mare-img { filter: contrast(1.7) saturate(1.5) brightness(0.95); }
+        #mare-layer.mare-window #mare-img { filter: contrast(1.55) saturate(1.3) brightness(0.78); }
         @keyframes mareIn {
             0% { transform: scale(1.1) translate(0,0); opacity: 0; }
             100% { transform: scale(1.5) translate(-2%, -3%); opacity: 1; }
@@ -375,6 +433,34 @@ OVERLAYS = '''<!-- Horror Overlays -->
     <canvas id="noise-canvas"></canvas>
     <div id="vignette"></div>
 
+    <!-- v11: fake OS permission prompt (camera/mic) -->
+    <div id="perm-prompt">
+        <div class="pp-box">
+            <div class="pp-top"><span class="pp-dot"></span><span id="pp-origin">kobyla-99.sys</span> запрашивает доступ</div>
+            <div class="pp-body">
+                <div class="pp-line"><span class="pp-ico">🎥</span> <span id="pp-cam">Использовать вашу камеру</span></div>
+                <div class="pp-line"><span class="pp-ico">🎙</span> <span id="pp-mic">Использовать ваш микрофон</span></div>
+            </div>
+            <div class="pp-row">
+                <button class="pp-btn pp-block" id="pp-block" onclick="permResolve(false)">Блокировать</button>
+                <button class="pp-btn pp-allow" id="pp-allow" onclick="permResolve(true)">Разрешить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- v11: fake file download bar -->
+    <div id="dl-bar">
+        <div class="dl-inner">
+            <div class="dl-ico">⬇</div>
+            <div class="dl-main">
+                <div class="dl-name" id="dl-name">она_идёт_за_тобой.exe</div>
+                <div class="dl-track"><div class="dl-fill" id="dl-fill"></div></div>
+                <div class="dl-sub" id="dl-sub">Скачивание... 0%</div>
+            </div>
+            <div class="dl-x" id="dl-x" onclick="dlDismiss()">✕</div>
+        </div>
+    </div>
+
 '''
 
 HORROR_JS = r'''
@@ -409,7 +495,12 @@ HORROR_JS = r'''
             'webcam':'data:image/jpeg;base64,__WC__',
             'door':  'data:image/jpeg;base64,__DR__',
             'phone': 'data:image/jpeg;base64,__PH__',
-            'split': 'data:image/jpeg;base64,__SP__'
+            'split': 'data:image/jpeg;base64,__SP__',
+            'gape':  'data:image/jpeg;base64,__GP__',
+            'scream':'data:image/jpeg;base64,__SC__',
+            'crawl': 'data:image/jpeg;base64,__CW__',
+            'bloodeye':'data:image/jpeg;base64,__BE__',
+            'window':'data:image/jpeg;base64,__WN__'
         };
 
         // v10: real recorded whisper voice clips (the mare actually speaks)
@@ -499,7 +590,7 @@ HORROR_JS = r'''
         ];
 
         // Pool of "in-your-soul" mare stills for random variety in scares.
-        const SCARE_FACES = ['soul', 'stare', 'grin', 'eye', 'teeth', 'charge', 'reach', 'wake', 'flesh', 'rot', 'maw', 'turn', 'face', 'lean', 'whites', 'ceil', 'split', 'webcam'];
+        const SCARE_FACES = ['soul', 'stare', 'grin', 'eye', 'teeth', 'charge', 'reach', 'wake', 'flesh', 'rot', 'maw', 'turn', 'face', 'lean', 'whites', 'ceil', 'split', 'webcam', 'gape', 'scream', 'crawl', 'bloodeye', 'window'];
         function randFace() { return SCARE_FACES[Math.floor(Math.random() * SCARE_FACES.length)]; }
         function randScreamPhrase() { return SCREAM_PHRASES[Math.floor(Math.random() * SCREAM_PHRASES.length)]; }
 
@@ -613,24 +704,24 @@ HORROR_JS = r'''
             'AUDIT_LOGS':          [['glitch', 600], ['whisper', 1500], ['thud', 3000], ['mare-eye', 4800], ['mirror-seq', 7000]],
             'AUDIT_INFECTION':     [['sting', 400], ['mare-flesh', 1700], ['growl', 3400], ['mare-rot', 5400], ['mare-split', 8000], ['sudden-whites', 11500]],
             'AUDIT_HALLWAY2':      [['heart', 800], ['whisper', 3200], ['scrape', 4800], ['creep-left', 6200], ['mare-behind', 8000], ['mare-ceil', 10400], ['mare-door', 13000]],
-            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath-close', 2400], ['whisper-many', 4400], ['mare-soul', 6400], ['sudden-reach', 8800], ['mare-face', 12000]],
-            'BIO_HORROR':          [['creep-right', 400], ['mare-split', 2000], ['sudden-lean', 5000], ['wake', 8000]],
-            'ARIS_DEATH':          [['mare-teeth', 900], ['growl', 2600], ['voice-woke', 4000], ['mare-reach', 6000], ['mare-face', 8600]],
-            'HIVE_PURGE':          [['sting', 400], ['roar', 1800], ['creep-left', 3000], ['mare-grin', 4600], ['sudden-face', 7800], ['mare-lean', 10800]],
-            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1500], ['mare-teeth', 2700], ['mare-charge', 4400], ['mare-split', 6600], ['mare-reach', 9000], ['sudden-face', 12000]],
+            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath-close', 2400], ['whisper-many', 4400], ['mare-soul', 6400], ['perm-prompt', 8800], ['mare-face', 12000]],
+            'BIO_HORROR':          [['creep-right', 400], ['mare-split', 2000], ['sudden-lean', 5000], ['barrage', 8000]],
+            'ARIS_DEATH':          [['mare-teeth', 900], ['growl', 2600], ['voice-woke', 4000], ['mare-crawl', 6000], ['mare-scream', 8600]],
+            'HIVE_PURGE':          [['sting', 400], ['roar', 1800], ['creep-left', 3000], ['mare-grin', 4600], ['mare-gape', 7800], ['mare-lean', 10800]],
+            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1500], ['mare-teeth', 2700], ['mare-charge', 4400], ['mare-scream', 6600], ['mare-crawl', 9000], ['barrage', 12000]],
             'CORE_CONFRONTATION':  [['heart', 500], ['whisper-many', 2200], ['mirror-seq', 4000]],
-            'HACK_ENTRY':          [['glitch', 700], ['whisper', 2200], ['creep-right', 4000], ['knock', 5800], ['mare-soul', 8000], ['mare-phone', 10600], ['sudden', 13000]],
-            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['creep-left', 2800], ['corner', 4400], ['mare-whites', 6600], ['mare-webcam', 9200], ['sudden', 12000]],
+            'HACK_ENTRY':          [['glitch', 700], ['whisper', 2200], ['creep-right', 4000], ['knock', 5800], ['mare-soul', 8000], ['perm-prompt', 10600], ['sudden', 13500]],
+            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['creep-left', 2800], ['corner', 4400], ['mare-whites', 6600], ['fake-download', 9200], ['sudden', 13000]],
             'HACK_KEY':            [['whisper', 900], ['scrape', 2600], ['mare-eye', 4400], ['voice-mirror', 6600], ['mare-ceil', 9000], ['sudden-face', 12000]],
-            'HACK_DUEL':           [['sting', 400], ['roar', 1700], ['shake-big', 2900], ['mare-reach', 4200], ['mare-split', 6600], ['sudden-lean', 9600]],
-            'HACK_SNEAK':          [['knock', 1100], ['scrape', 2800], ['creep-right', 4200], ['mare-behind', 5600], ['mare-door', 8200], ['sudden-whites', 11200]],
-            'HACK_DIVE':           [['void', 800], ['voice-far', 3400], ['mare-eye', 5200], ['mirror-seq', 7600]],
-            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2200], ['mare-rot', 4200], ['mare-soul', 6400], ['mare-phone', 8800], ['sudden-face', 11800]],
-            'BURN_ENTRY':          [['roar', 300], ['glitch', 1400], ['creep-left', 2800], ['mare-grin', 4400], ['voice-turn', 7000], ['sudden', 9600]],
-            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1100], ['mare-teeth', 2400], ['mare-charge', 4200], ['mare-split', 6400], ['mare-reach', 8800], ['sudden-face', 11800]],
-            'BURN_EMP':            [['glitch', 400], ['thud', 1700], ['void', 3000], ['mare-eye', 4800], ['mare-behind', 7000], ['mare-webcam', 9600], ['sudden', 12200]],
+            'HACK_DUEL':           [['sting', 400], ['roar', 1700], ['shake-big', 2900], ['mare-reach', 4200], ['mare-gape', 6600], ['barrage', 9600]],
+            'HACK_SNEAK':          [['knock', 1100], ['scrape', 2800], ['creep-right', 4200], ['mare-behind', 5600], ['mare-window', 8200], ['mare-crawl', 11200]],
+            'HACK_DIVE':           [['void', 800], ['voice-far', 3400], ['mare-bloodeye', 5200], ['mirror-seq', 7600]],
+            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2200], ['mare-rot', 4200], ['mare-scream', 6400], ['mare-phone', 8800], ['sudden-gape', 11800]],
+            'BURN_ENTRY':          [['roar', 300], ['glitch', 1400], ['creep-left', 2800], ['mare-grin', 4400], ['fake-download', 7000], ['sudden', 10600]],
+            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1100], ['mare-teeth', 2400], ['mare-charge', 4200], ['mare-scream', 6400], ['mare-crawl', 8800], ['barrage', 11800]],
+            'BURN_EMP':            [['glitch', 400], ['thud', 1700], ['void', 3000], ['mare-bloodeye', 4800], ['mare-behind', 7000], ['mare-webcam', 9600], ['mare-window', 12200]],
             'BURN_DARK':           [['void', 600], ['growl', 2000], ['whisper', 3200], ['creep-right', 4600], ['mare-soul', 6000], ['mirror-seq', 8400]],
-            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2400], ['mare-charge', 4100], ['mare-reach', 6200], ['mare-split', 8600], ['sudden-face', 11600]]
+            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2400], ['mare-charge', 4100], ['mare-crawl', 6200], ['mare-gape', 8600], ['barrage', 11600]]
         };
 
         // nodes with a lighter ambient (but ALL nodes get some ambience now)
@@ -708,6 +799,159 @@ HORROR_JS = r'''
                 hrDreadTextFixed(lang === 'ru' ? 'НЕ ХОЧЕШЬ ПРЕДСТАВИТЬСЯ? Я ВСЁ РАВНО УЗНАЮ.' : 'WON\\u2019T GIVE YOUR NAME? I WILL FIND IT ANYWAY.', 2400);
                 speakLine('я всё равно узнаю твоё имя', 'i will find your name anyway');
             }, 700);
+        }
+
+        // ================= v11: FAKE PERMISSION PROMPT (camera/mic) =================
+        function fakePermPrompt() {
+            if (!HORROR.enabled) return;
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            const info = hrDetect();
+            const p = document.getElementById('perm-prompt');
+            if (!p) return;
+            document.getElementById('pp-origin').textContent = (info.br || 'kobyla-99') .toLowerCase() + ' · kobyla-99.sys';
+            document.getElementById('pp-cam').textContent = lang === 'ru' ? 'Использовать вашу камеру' : 'Use your camera';
+            document.getElementById('pp-mic').textContent = lang === 'ru' ? 'Использовать ваш микрофон' : 'Use your microphone';
+            p.classList.add('on');
+            hrPlay('chime');
+            HORROR._permTimer = setTimeout(() => { if (p.classList.contains('on')) permResolve(false, true); }, 12000);
+        }
+        function permResolve(allowed, timedOut) {
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            const p = document.getElementById('perm-prompt');
+            if (HORROR._permTimer) { clearTimeout(HORROR._permTimer); HORROR._permTimer = null; }
+            if (!p) return;
+            if (allowed) {
+                // she "gets in" — instant hard scare through the "camera"
+                p.classList.remove('on');
+                setTimeout(() => {
+                    hrMusicDuck(0); hrBlackout(150);
+                    setTimeout(() => {
+                        hrPlay('bang'); hrPlay('deep-scream'); hrPlay('screech'); hrPlay('sub-boom');
+                        hrVoice('watch', 1.0);
+                        hrMare('webcam', 1000); hrShake(1200, 54); hrFlash('red', 460); hrStrobe(7); noiseStorm(1200);
+                        hrDreadTextFixed(lang === 'ru' ? 'СПАСИБО ЗА ДОСТУП.' : 'THANK YOU FOR ACCESS.', 2600);
+                        speakName('', lang === 'ru' ? '... теперь я вижу твоё лицо.' : '... now i see your face.');
+                        hrTitleFlash(lang === 'ru' ? '● REC' : '● REC', 8000);
+                        setTimeout(() => { hrMare('scream', 300); hrPlay('shriek'); hrShake(600, 30); }, 1000);
+                        setTimeout(() => { hrMusicDuck(1); startAmb(); dreadSet(84); }, 3400);
+                    }, 150);
+                }, 250);
+            } else {
+                // blocking does NOT help — she takes it anyway
+                p.classList.add('shake');
+                hrPlay('nails');
+                setTimeout(() => {
+                    p.classList.remove('shake'); p.classList.remove('on');
+                    setTimeout(() => {
+                        hrDreadTextFixed(lang === 'ru' ? 'БЛОКИРОВКА ОТКЛОНЕНА. Я УЖЕ ВНУТРИ.' : 'BLOCK DENIED. I AM ALREADY IN.', 2400);
+                        hrVoice('close', 0.9);
+                        speakLine(lang === 'ru' ? 'блокировка не поможет' : 'blocking will not help', 'blocking will not help');
+                        hrMare('lean', 500); hrPlay('screech'); hrFlash('red', 240); hrShake(600, 26);
+                        hrTitleFlash('● REC', 8000);
+                    }, 400);
+                }, 900);
+            }
+        }
+
+        // ================= v11: FAKE FILE DOWNLOAD (threat) =================
+        function fakeDownload() {
+            if (!HORROR.enabled) return;
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            const bar = document.getElementById('dl-bar');
+            const fill = document.getElementById('dl-fill');
+            const sub = document.getElementById('dl-sub');
+            const nameEl = document.getElementById('dl-name');
+            if (!bar) return;
+            const NM = (HORROR.playerName || '').trim();
+            const files = lang === 'ru'
+                ? ['она_идёт_за_тобой.exe', 'твоё_лицо_' + (NM || 'наблюдатель') + '.jpg', 'запись_с_камеры.mp4', 'КОБЫЛА_99.dll', 'не_открывай_меня.exe']
+                : ['she_is_coming.exe', 'your_face_' + (NM || 'observer') + '.jpg', 'camera_capture.mp4', 'KOBYLA_99.dll', 'do_not_open_me.exe'];
+            nameEl.textContent = files[Math.floor(Math.random() * files.length)];
+            bar.classList.remove('danger');
+            fill.style.width = '0%';
+            sub.textContent = (lang === 'ru' ? 'Скачивание... 0%' : 'Downloading... 0%');
+            bar.classList.add('on');
+            hrPlay('chime');
+            let pct = 0;
+            const iv = setInterval(() => {
+                pct += 3 + Math.floor(Math.random() * 9);
+                if (pct >= 100) {
+                    pct = 100; clearInterval(iv);
+                    fill.style.width = '100%';
+                    bar.classList.add('danger');
+                    sub.textContent = (lang === 'ru' ? 'Файл сохранён на ТВОЙ диск.' : 'Saved to YOUR disk.');
+                    nameEl.textContent = (lang === 'ru' ? 'установлено: КОБЫЛА-99' : 'installed: KOBYLA-99');
+                    hrPlay('static-slam');
+                    hrVoice('close', 0.9);
+                    setTimeout(() => {
+                        // the "download" completes into a scare
+                        hrMusicDuck(0); hrBlackout(150);
+                        setTimeout(() => {
+                            hrPlay('bang'); hrPlay('deep-scream'); hrPlay('sub-boom');
+                            hrMare('crawl', 900); hrShake(1100, 52); hrFlash('red', 440); hrStrobe(6); noiseStorm(1100);
+                            hrDreadTextFixed(lang === 'ru' ? 'Я ТЕПЕРЬ В ТВОЁМ КОМПЬЮТЕРЕ.' : 'I AM IN YOUR COMPUTER NOW.', 2600);
+                            speakName('', lang === 'ru' ? '... навсегда.' : '... forever.');
+                            setTimeout(() => { hrMusicDuck(1); startAmb(); dreadSet(82); }, 3000);
+                        }, 150);
+                    }, 1400);
+                } else {
+                    fill.style.width = pct + '%';
+                    sub.textContent = (lang === 'ru' ? 'Скачивание... ' : 'Downloading... ') + pct + '%';
+                }
+            }, 260);
+            HORROR._dlIv = iv;
+        }
+        function dlDismiss() {
+            const bar = document.getElementById('dl-bar');
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            if (bar) bar.classList.remove('on');
+            // dismissing it just makes her comment
+            setTimeout(() => { hrPlay('whisper-name'); hrDreadTextFixed(lang === 'ru' ? 'ПОЗДНО. УЖЕ СКАЧАНО.' : 'TOO LATE. ALREADY DOWNLOADED.', 1800); }, 300);
+        }
+
+        // ================= v11: BLINKING EYE FAVICON =================
+        const FAVICON = { orig: null, timer: null, link: null, blink: false };
+        function faviconEnsureLink() {
+            if (FAVICON.link) return FAVICON.link;
+            let l = document.querySelector('link[rel~="icon"]');
+            if (!l) { l = document.createElement('link'); l.rel = 'icon'; document.head.appendChild(l); }
+            if (FAVICON.orig === null) FAVICON.orig = l.href || '';
+            FAVICON.link = l; return l;
+        }
+        function drawEye(open) {
+            const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+            const x = c.getContext('2d');
+            x.fillStyle = '#0a0002'; x.fillRect(0, 0, 32, 32);
+            if (open) {
+                // red glowing eye
+                x.fillStyle = '#e01030';
+                x.beginPath(); x.ellipse(16, 16, 14, 9, 0, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#ff5a70';
+                x.beginPath(); x.ellipse(16, 16, 9, 6, 0, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#120000';
+                x.beginPath(); x.arc(16, 16, 4.2, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#fff';
+                x.beginPath(); x.arc(14, 14, 1.4, 0, Math.PI * 2); x.fill();
+            } else {
+                // closed slit
+                x.strokeStyle = '#7a0018'; x.lineWidth = 3;
+                x.beginPath(); x.moveTo(3, 16); x.lineTo(29, 16); x.stroke();
+            }
+            return c.toDataURL('image/png');
+        }
+        function faviconStart() {
+            if (FAVICON.timer) return;
+            faviconEnsureLink();
+            let open = true;
+            FAVICON.timer = setInterval(() => {
+                // mostly open, occasional blink
+                open = Math.random() < 0.82;
+                try { FAVICON.link.href = drawEye(open); } catch (e) {}
+            }, 900);
+        }
+        function faviconStop() {
+            if (FAVICON.timer) { clearInterval(FAVICON.timer); FAVICON.timer = null; }
+            try { if (FAVICON.link && FAVICON.orig !== null) FAVICON.link.href = FAVICON.orig; } catch (e) {}
         }
 
         let noiseOn = false;
@@ -1263,7 +1507,7 @@ HORROR_JS = r'''
         function hrMare(kind, ms) {
             const layer = document.getElementById('mare-layer');
             const img = document.getElementById('mare-img');
-            const key = ['void','teeth','eyes','pale','leap','stare','shadow','eye','flesh','charge','soul','grin','reach','behind','crack','rot','turn','maw','hand','face','refl','ceil','whites','lean','bed','webcam','door','phone','split'].indexOf(kind) !== -1 ? kind : 'wake';
+            const key = ['void','teeth','eyes','pale','leap','stare','shadow','eye','flesh','charge','soul','grin','reach','behind','crack','rot','turn','maw','hand','face','refl','ceil','whites','lean','bed','webcam','door','phone','split','gape','scream','crawl','bloodeye','window'].indexOf(kind) !== -1 ? kind : 'wake';
             img.src = MARE_IMGS[key];
             layer.className = 'mare-on mare-' + key;
             setTimeout(() => { layer.className = ''; }, ms || 300);
@@ -1384,6 +1628,55 @@ HORROR_JS = r'''
             }, 70);
         }
 
+        // ================= BARRAGE (v11): rapid image carousel + overlapping voices =================
+        // The dissonant "all images at once" effect: machine-gun through faces while
+        // multiple whisper voice clips overlap. Pure sensory overload.
+        function barrageScare() {
+            if (!HORROR.enabled) return;
+            cancelHorrorTimers();
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            hrMusicDuck(0);
+            dreadSet(100);
+            document.body.classList.add('wake-mode');
+            hrVig(true);
+            hrBlackout(120);
+
+            const faces = SCARE_FACES.slice();
+            for (let i = faces.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = faces[i]; faces[i] = faces[j]; faces[j] = t; }
+
+            const N = 26;               // number of rapid frames
+            const step = 95;            // ms per frame -> ~2.5s of strobing faces
+            hrPlay('bang'); hrPlay('deep-scream'); hrPlay('attack'); hrPlay('sub-boom');
+            hrStrobe(9); noiseStorm(N * step + 400); hrShake(N * step + 300, 40);
+
+            // overlapping voices layered at offset times -> dissonant chorus
+            const vkeys = ['turn', 'mirror', 'watch', 'close', 'woke', 'name'];
+            [0, 300, 650, 1000, 1400, 1800].forEach((off, i) => {
+                HORROR.timers.push(setTimeout(() => hrVoice(vkeys[i % vkeys.length], 0.7 + Math.random() * 0.3), off));
+            });
+            HORROR.timers.push(setTimeout(() => speakName('', lang === 'ru' ? '' : ''), 500));
+            HORROR.timers.push(setTimeout(() => speakLine(lang === 'ru' ? 'ты мой' : 'you are mine', 'you are mine'), 1300));
+
+            for (let i = 0; i < N; i++) {
+                HORROR.timers.push(setTimeout(() => {
+                    hrMare(faces[i % faces.length], step + 40);
+                    if (i % 2 === 0) hrPlay(['screech', 'shriek', 'nails', 'sting', 'scream'][Math.floor(Math.random() * 5)]);
+                    if (i % 4 === 0) hrFlash(i % 8 === 0 ? 'white' : 'red', 70);
+                    if (i % 5 === 0) hrDreadTextFixed(randScreamPhrase(), 220);
+                }, i * step));
+            }
+
+            HORROR.timers.push(setTimeout(() => {
+                hrBlackout(200);
+                setTimeout(() => {
+                    hrMare('gape', 1000); hrPlay('deep-scream'); hrPlay('sub-boom'); hrFlash('red', 500); hrShake(1200, 54);
+                    hrVoice('woke', 1.0);
+                    hrDreadTextFixed(lang === 'ru' ? 'ТЫ ВИДЕЛ ВСЁ. ТЕПЕРЬ ТЫ НЕ ЗАБУДЕШЬ.' : 'YOU SAW IT ALL. NOW YOU CANNOT FORGET.', 2600);
+                }, 200);
+                setTimeout(() => { document.body.classList.remove('wake-mode'); hrMusicDuck(1); startAmb(); dreadSet(82); }, 3200);
+            }, N * step + 150));
+        }
+
         // ================= MIRROR / BEHIND-YOU SET-PIECE (v10) =================
         // A slow, personal fourth-wall sequence: she narrates that she is behind you,
         // reflected in the screen, then in your phone, then attacks. Uses real voice clips.
@@ -1440,7 +1733,8 @@ HORROR_JS = r'''
             }, 11800));
         }
 
-        function noiseStorm(ms) {            noiseOn = true;
+        function noiseStorm(ms) {
+            noiseOn = true;
             document.body.classList.add('glitch');
             setTimeout(() => {
                 document.body.classList.remove('glitch');
@@ -1740,6 +2034,40 @@ HORROR_JS = r'''
                 case 'voice-woke': hrVoice('woke', 0.95); break;
                 case 'voice-name': hrVoice('name', 0.9); speakName('', '... иди ко мне.'); break;
                 case 'mirror-seq': mirrorSequence(); break;
+                case 'barrage': barrageScare(); break;
+                case 'mare-gape':
+                    hrBlackout(120);
+                    setTimeout(() => {
+                        hrPlay('bang'); hrPlay('deep-scream'); hrPlay('impact'); hrPlay('sub-boom');
+                        hrMare('gape', 950); hrShake(1200, 54); hrFlash('red', 460); hrStrobe(7); noiseStorm(1200);
+                        hrDreadTextFixed('ГЛУБЖЕ', 1800); dreadSet(HORROR.dread + 22); hrMusicDuck(0);
+                        setTimeout(() => { hrMare('scream', 240); hrPlay('nails'); }, 950);
+                        setTimeout(() => hrMusicDuck(1), 3800);
+                    }, 120);
+                    break;
+                case 'mare-scream':
+                    hrBlackout(110);
+                    setTimeout(() => {
+                        hrPlay('bang'); hrPlay('deep-scream'); hrPlay('screech'); hrPlay('sub-boom');
+                        hrMare('scream', 900); hrShake(1100, 52); hrFlash('red', 440); hrStrobe(7); noiseStorm(1100);
+                        hrVoice('woke', 0.9); dreadSet(HORROR.dread + 22); hrMusicDuck(0);
+                        setTimeout(() => { hrMare('gape', 240); hrPlay('shriek'); }, 900);
+                        setTimeout(() => hrMusicDuck(1), 3600);
+                    }, 110);
+                    break;
+                case 'mare-crawl':
+                    scareBuild(() => { hrMare('crawl', 800); hrPlay('metal-drag'); hrPlay('growl'); hrPlay('bone-crack'); hrFlash('red', 260); hrShake(700, 26); hrDreadTextFixed('ОНА ПОЛЗЁТ К ТЕБЕ', 2000); dreadSet(HORROR.dread + 16); hrMusicDuck(0.25); setTimeout(() => hrMusicDuck(1), 3400); });
+                    break;
+                case 'mare-window':
+                    scareBuild(() => { hrMare('window', 900); hrPlay('nails'); hrPlay('breath-close'); hrVoice('turn', 0.85); hrFlash('red', 200); hrShake(500, 16); hrDreadTextFixed('ОНА СНАРУЖИ. У ОКНА.', 2400); dreadSet(HORROR.dread + 15); hrMusicDuck(0.25); setTimeout(() => hrMusicDuck(1), 3600); });
+                    break;
+                case 'mare-bloodeye':
+                    scareBuild(() => { hrMare('bloodeye', 900); hrPlay('sting'); hrPlay('whisper-name'); hrVoice('watch', 0.85); hrFlash('red', 260); hrShake(520, 18); hrDreadTextFixed('ОНА ВИДИТ ТЕБЯ В СВОЁМ ГЛАЗУ', 2200); dreadSet(HORROR.dread + 14); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3200); });
+                    break;
+                case 'sudden-gape': suddenScare('gape'); break;
+                case 'sudden-scream': suddenScare('scream'); break;
+                case 'perm-prompt': fakePermPrompt(); break;
+                case 'fake-download': fakeDownload(); break;
                 case 'wake': wakeScare(); break;
                 case 'roar': hrPlay('roar'); hrShake(650, 22); hrFlash('red', 300); dreadSet(HORROR.dread + 8); break;
                 case 'shake-big': hrPlay('roar'); hrShake(850, 32); hrFlash('red', 360); noiseStorm(700); break;
@@ -1775,6 +2103,7 @@ HORROR_JS = r'''
             hrDroneStart();
             hrMusicDuck(0.1);
             hrTitleCreep();
+            faviconStart();
             const t = [];
             t.push(setInterval(() => { if (HORROR.enabled) { hrPlay('heart'); } }, HORROR.beatInterval));
             t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.55 + HORROR.dread / 150) hrPlay('whisper'); }, 2800));
@@ -1825,6 +2154,10 @@ HORROR_JS = r'''
                     hrMare(randFace(), 60); hrPlay('nails');
                 }
             }, 9000 + Math.floor(Math.random() * 7000)));
+            // v11: rare full BARRAGE (the dissonant image-carousel overload) deep in
+            t.push(setInterval(() => {
+                if (HORROR.enabled && HORROR.dread > 66 && Math.random() < 0.10 + HORROR.dread / 900) barrageScare();
+            }, 34000 + Math.floor(Math.random() * 20000)));
             // v7: rare PERSONAL fourth-wall haunt (she knows your machine/time)
             t.push(setInterval(() => {
                 if (HORROR.enabled && HORROR.dread > 25 && Math.random() < 0.14 + HORROR.dread / 400) personalHaunt();
@@ -1882,7 +2215,7 @@ HORROR_JS = r'''
             HORROR.enabled = !HORROR.enabled;
             const btn = document.getElementById('btn-screamers');
             btn.innerText = HORROR.enabled ? '👁 СКРИМЕРЫ: ВКЛ' : '👁 СКРИМЕРЫ: ВЫКЛ';
-            if (!HORROR.enabled) { cancelHorrorTimers(); stopAmb(); hrTitleRestore(); hrPlay('thud'); dreadSet(0); }
+            if (!HORROR.enabled) { cancelHorrorTimers(); stopAmb(); hrTitleRestore(); faviconStop(); hrPlay('thud'); dreadSet(0); }
         }
 
         function triggerWake() { wakeScare(); }
@@ -2094,6 +2427,8 @@ def main():
     js = js.replace('__WH__', MARE['whites']).replace('__LN__', MARE['lean']).replace('__BD__', MARE['bed'])
     js = js.replace('__WC__', MARE['webcam']).replace('__DR__', MARE['door'])
     js = js.replace('__PH__', MARE['phone']).replace('__SP__', MARE['split'])
+    js = js.replace('__GP__', MARE['gape']).replace('__SC__', MARE['scream']).replace('__CW__', MARE['crawl'])
+    js = js.replace('__BE__', MARE['bloodeye']).replace('__WN__', MARE['window'])
     js = js.replace('__VT__', VOICE['turn']).replace('__VM__', VOICE['mirror']).replace('__VW__', VOICE['watch'])
     js = js.replace('__VC__', VOICE['close']).replace('__VK__', VOICE['woke']).replace('__VN__', VOICE['name'])
     h = h.replace(onload, js + '\n\n        ' + onload, 1)
