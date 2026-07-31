@@ -5,7 +5,7 @@ with open(image_path, "rb") as img_file:
     img_b64 = base64.b64encode(img_file.read()).decode('utf-8')
 img_data_url = f"data:image/png;base64,{img_b64}"
 
-from build_publicist_vn import publicist_nodes
+from expanded_story import expanded_nodes as publicist_nodes
 
 html_template = f"""<!DOCTYPE html>
 <html lang="ru">
@@ -513,6 +513,24 @@ html_template = f"""<!DOCTYPE html>
                         arp: [174.61, 220, 261.63, 329.63],
                         waveform: 'sine',
                         kickInterval: 8
+                    }},
+                    horror: {{
+                        name_ru: 'ТРЕК 5: НЕЙРОННЫЙ КОШМАР (60 BPM)',
+                        name_en: 'TRACK 5: NEURAL NIGHTMARE (60 BPM)',
+                        tempo: 60,
+                        bass: [32.7, 30.87, 27.5, 24.5],
+                        arp: [130.81, 138.59, 123.47, 116.54],
+                        waveform: 'sine',
+                        kickInterval: 16
+                    }},
+                    battle: {{
+                        name_ru: 'ТРЕК 6: СТОЛКНОВЕНИЕ С ГОЛЕМОМ (150 BPM)',
+                        name_en: 'TRACK 6: GOLEM CONFRONTATION (150 BPM)',
+                        tempo: 150,
+                        bass: [55, 65.4, 55, 73.4, 55, 87.3, 55, 98],
+                        arp: [220, 330, 440, 550, 660, 440],
+                        waveform: 'sawtooth',
+                        kickInterval: 1
                     }}
                 }};
             }}
@@ -684,6 +702,36 @@ html_template = f"""<!DOCTYPE html>
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.42);
+            }}
+            else if (type === 'heartbeat') {{
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(60, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.1);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }}
+            else if (type === 'static' || type === 'glitch') {{
+                const bufferSize = ctx.sampleRate * 0.2;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {{
+                    data[i] = Math.random() * 2 - 1;
+                }}
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                noise.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+                noise.stop(now + 0.2);
             }}
         }}
 
