@@ -37,6 +37,15 @@ MARE = {
     'eye':    b64('_assets/mare_eye.jpg'),
     'flesh':  b64('_assets/mare_flesh.jpg'),
     'charge': b64('_assets/mare_charge.jpg'),
+    'soul':   b64('_assets/mare_soul.jpg'),
+    'grin':   b64('_assets/mare_grin.jpg'),
+    'reach':  b64('_assets/mare_reach.jpg'),
+    'behind': b64('_assets/mare_behind.jpg'),
+    'crack':  b64('_assets/mare_crackscreen.jpg'),
+    'rot':    b64('_assets/mare_rot.jpg'),
+    'turn':   b64('_assets/mare_turn.jpg'),
+    'maw':    b64('_assets/mare_maw.jpg'),
+    'hand':   b64('_assets/mare_hand.jpg'),
 }
 
 CSS = r'''
@@ -63,6 +72,15 @@ CSS = r'''
         #mare-layer.mare-eye #mare-img { filter: contrast(1.6) brightness(0.95); }
         #mare-layer.mare-flesh #mare-img { filter: contrast(1.5) saturate(1.6) brightness(0.78); }
         #mare-layer.mare-shadow #mare-img { filter: contrast(1.4) brightness(0.6); }
+        #mare-layer.mare-soul #mare-img { filter: contrast(1.55) brightness(0.92) saturate(1.2); }
+        #mare-layer.mare-grin #mare-img { filter: contrast(1.6) saturate(1.5) brightness(0.85); }
+        #mare-layer.mare-reach #mare-img { filter: contrast(1.7) saturate(1.7) brightness(0.82); }
+        #mare-layer.mare-behind #mare-img { filter: contrast(1.4) brightness(0.7); }
+        #mare-layer.mare-crack #mare-img { filter: contrast(1.65) saturate(1.4) brightness(0.9); }
+        #mare-layer.mare-rot #mare-img { filter: contrast(1.5) brightness(0.72) saturate(0.85); }
+        #mare-layer.mare-turn #mare-img { filter: contrast(1.45) brightness(0.85) saturate(1.15); }
+        #mare-layer.mare-maw #mare-img { filter: contrast(1.7) saturate(1.7) brightness(0.85); }
+        #mare-layer.mare-hand #mare-img { filter: contrast(1.55) saturate(1.4) brightness(0.82); }
         @keyframes mareIn {
             0% { transform: scale(1.1) translate(0,0); opacity: 0; }
             100% { transform: scale(1.5) translate(-2%, -3%); opacity: 1; }
@@ -290,14 +308,23 @@ HORROR_JS = r'''
             'shadow':'data:image/jpeg;base64,__SH__',
             'eye':   'data:image/jpeg;base64,__EY__',
             'flesh': 'data:image/jpeg;base64,__FL__',
-            'charge':'data:image/jpeg;base64,__CH__'
+            'charge':'data:image/jpeg;base64,__CH__',
+            'soul':  'data:image/jpeg;base64,__SL__',
+            'grin':  'data:image/jpeg;base64,__GR__',
+            'reach': 'data:image/jpeg;base64,__RE__',
+            'behind':'data:image/jpeg;base64,__BH__',
+            'crack': 'data:image/jpeg;base64,__CR__',
+            'rot':   'data:image/jpeg;base64,__RT__',
+            'turn':  'data:image/jpeg;base64,__TU__',
+            'maw':   'data:image/jpeg;base64,__MW__',
+            'hand':  'data:image/jpeg;base64,__HD__'
         };
 
         const HORROR = {
             enabled: true,
             timers: [], ambTimers: [], ambOn: false,
             lastNode: null, dread: 0, drone: null, beatInterval: 2600,
-            crashDone: false, crashArmed: false
+            crashDone: false, crashArmed: false, introDone: false
         };
 
         // nodes deep enough that a "system crash" feels earned; fired once per run
@@ -315,31 +342,144 @@ HORROR_JS = r'''
             'ОБЕРНИСЬ', 'НЕ ЧИТАЙ ДАЛЬШЕ', 'ОНА ПОД КОЖЕЙ', 'БЕГИ'
         ];
 
+        // Big CAPS phrases shown ON the screamer impact (scarier, in-your-face).
+        const SCREAM_PHRASES = [
+            'КОБЫЛА ПРИШЛА ЗА ТОБОЙ', 'КОБЫЛА ПРОСНУЛАСЬ', 'ОНА ВИДИТ ТЕБЯ',
+            'ТЫ НЕ УЙДЁШЬ', 'ОНА УЖЕ ЗДЕСЬ', 'БЕГИ, ПОКА МОЖЕШЬ', 'СМОТРИ НА МЕНЯ',
+            'ТВОЁ СЕРДЦЕ — МОЁ', 'Я ЧУВСТВУЮ ТЕБЯ', 'ОНА ИДЁТ', 'ПОЗДНО БЕЖАТЬ',
+            'ТЫ ЕЁ НАКОРМИЛ', 'ОНА ЗАПОМНИЛА ТВОЁ ЛИЦО', 'НЕ ЗАКРЫВАЙ ГЛАЗА'
+        ];
+
+        // Pool of "in-your-soul" mare stills for random variety in scares.
+        const SCARE_FACES = ['soul', 'stare', 'grin', 'eye', 'teeth', 'charge', 'reach', 'wake', 'flesh', 'rot', 'maw', 'turn'];
+        function randFace() { return SCARE_FACES[Math.floor(Math.random() * SCARE_FACES.length)]; }
+        function randScreamPhrase() { return SCREAM_PHRASES[Math.floor(Math.random() * SCREAM_PHRASES.length)]; }
+
+        // ---- dynamic browser tab title (subtle fourth-wall unease) ----
+        const HR_TITLE = { orig: null, timer: null };
+        const CREEPY_TITLES = [
+            'она смотрит', 'не оборачивайся', 'КОБЫЛА проснулась', 'я вижу тебя',
+            'она за тобой', 'ты слышишь?', '● REC', 'кто там позади?', 'она помнит тебя',
+            'осталось недолго', 'я жду', 'посмотри назад'
+        ];
+        function hrTitleInit() {
+            if (HR_TITLE.orig === null) HR_TITLE.orig = document.title;
+        }
+        function hrTitleCreep() {
+            hrTitleInit();
+            if (HR_TITLE.timer) return;
+            let i = 0;
+            HR_TITLE.timer = setInterval(() => {
+                // only mess with the title when the tab is hidden OR occasionally while visible
+                if (document.hidden || Math.random() < 0.5) {
+                    document.title = CREEPY_TITLES[i % CREEPY_TITLES.length];
+                    i++;
+                } else {
+                    document.title = HR_TITLE.orig;
+                }
+            }, 4200);
+        }
+        function hrTitleFlash(txt, holdMs) {
+            hrTitleInit();
+            document.title = txt;
+            setTimeout(() => {
+                if (HR_TITLE.timer) return; // creep loop will manage it
+                document.title = HR_TITLE.orig;
+            }, holdMs || 3000);
+        }
+        function hrTitleRestore() {
+            if (HR_TITLE.timer) { clearInterval(HR_TITLE.timer); HR_TITLE.timer = null; }
+            if (HR_TITLE.orig !== null) document.title = HR_TITLE.orig;
+        }
+
+        // ---- PERSONAL HAUNT: she "knows" about YOUR real machine (hard fourth-wall) ----
+        function hrDetect() {
+            const ua = navigator.userAgent || '';
+            let br = 'ТВОЙ БРАУЗЕР';
+            if (/Edg\//.test(ua)) br = 'EDGE';
+            else if (/OPR\/|Opera/.test(ua)) br = 'OPERA';
+            else if (/Firefox\//.test(ua)) br = 'FIREFOX';
+            else if (/Chrome\//.test(ua)) br = 'CHROME';
+            else if (/Safari\//.test(ua)) br = 'SAFARI';
+            let os = '';
+            if (/Windows/.test(ua)) os = 'WINDOWS';
+            else if (/Android/.test(ua)) os = 'ANDROID';
+            else if (/iPhone|iPad|iPod/.test(ua)) os = 'IOS';
+            else if (/Mac OS X/.test(ua)) os = 'MACOS';
+            else if (/Linux/.test(ua)) os = 'LINUX';
+            const d = new Date();
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            const late = (d.getHours() >= 23 || d.getHours() < 5);
+            return { br, os, hh, mm, late, mobile: /Mobi|Android|iPhone/.test(ua) };
+        }
+        function personalHaunt() {
+            if (!HORROR.enabled) return;
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            const info = hrDetect();
+            const ru = [
+                'СЕЙЧАС ' + info.hh + ':' + info.mm + '. Я ВИЖУ.',
+                info.br + ' НЕ ЗАКРОЕТ МЕНЯ.',
+                (info.os ? info.os + ' — ' : '') + 'ТВОЯ СИСТЕМА ТЕПЕРЬ МОЯ.',
+                info.late ? 'ТАК ПОЗДНО. ПОЧЕМУ ТЫ ЕЩЁ НЕ СПИШЬ?' : 'Я СЛЕЖУ ЗА ТОБОЙ ВЕСЬ ДЕНЬ.',
+                info.mobile ? 'ТЫ ДЕРЖИШЬ МЕНЯ В РУКАХ.' : 'УБЕРИ РУКИ С КЛАВИАТУРЫ.',
+                'ЗАКРОЙ ВКЛАДКУ. Я ВСЁ РАВНО ОСТАНУСЬ.'
+            ];
+            const en = [
+                'IT IS ' + info.hh + ':' + info.mm + ' NOW. I SEE.',
+                info.br + ' WON\\u2019T CLOSE ME.',
+                (info.os ? info.os + ' — ' : '') + 'YOUR SYSTEM IS MINE NOW.',
+                info.late ? 'SO LATE. WHY ARE YOU STILL AWAKE?' : 'I HAVE WATCHED YOU ALL DAY.',
+                info.mobile ? 'YOU ARE HOLDING ME IN YOUR HANDS.' : 'TAKE YOUR HANDS OFF THE KEYBOARD.',
+                'CLOSE THE TAB. I WILL STILL BE HERE.'
+            ];
+            const arr = lang === 'ru' ? ru : en;
+            const txt = arr[Math.floor(Math.random() * arr.length)];
+            hrVig(true);
+            hrPlay('whisper-name');
+            hrGlitch(220);
+            hrDreadTextFixed(txt, 2200);
+            hrTitleFlash(lang === 'ru' ? 'я знаю где ты' : 'i know where you are', 5000);
+        }
+        // when the player leaves the tab, she "notices"
+        document.addEventListener('visibilitychange', () => {
+            if (!HORROR.enabled) return;
+            if (document.hidden) {
+                document.title = CREEPY_TITLES[Math.floor(Math.random() * CREEPY_TITLES.length)];
+            } else {
+                // welcome back...
+                if (HORROR.ambOn && Math.random() < 0.6) {
+                    setTimeout(() => { if (!document.hidden) { hrPlay('whisper-name'); hrDreadTextFixed('С ВОЗВРАЩЕНИЕМ.', 900); } }, 500);
+                }
+            }
+        });
+
+
         const HORROR_EVENTS = {
             'START':               [['whisper', 1400], ['creep-left', 3200], ['dread-line', 6000]],
-            'AUDIT_ENTRY':         [['glitch', 700], ['whisper', 2200], ['knock', 4200], ['creep-right', 6200]],
-            'AUDIT_HALLWAY':       [['heart', 700], ['scrape', 2600], ['whisper-many', 4400], ['mare-shadow', 6400]],
-            'AUDIT_LOGS':          [['glitch', 600], ['whisper', 1500], ['thud', 3200], ['mare-eye', 5000], ['mare-corner-mini', 6800]],
-            'AUDIT_INFECTION':     [['sting', 400], ['mare-flesh', 1700], ['growl', 3600]],
-            'AUDIT_HALLWAY2':      [['heart', 800], ['whisper', 3400], ['scrape', 5200], ['creep-left', 6800], ['corner', 8200]],
-            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath', 2600], ['whisper-many', 4600], ['mare-small', 6400]],
+            'AUDIT_ENTRY':         [['glitch', 700], ['whisper', 2200], ['knock', 4200], ['creep-right', 6200], ['mare-soul', 8600]],
+            'AUDIT_HALLWAY':       [['heart', 700], ['scrape', 2600], ['whisper-many', 4400], ['mare-shadow', 6400], ['sudden', 9200]],
+            'AUDIT_LOGS':          [['glitch', 600], ['whisper', 1500], ['thud', 3200], ['mare-eye', 5000], ['mare-grin', 7200]],
+            'AUDIT_INFECTION':     [['sting', 400], ['mare-flesh', 1700], ['growl', 3600], ['mare-rot', 5800]],
+            'AUDIT_HALLWAY2':      [['heart', 800], ['whisper', 3400], ['scrape', 5200], ['creep-left', 6800], ['mare-behind', 8600]],
+            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath', 2600], ['whisper-many', 4600], ['mare-soul', 6800], ['sudden-reach', 9600]],
             'BIO_HORROR':          [['creep-right', 400], ['wake', 1400]],
-            'ARIS_DEATH':          [['mare-teeth', 950], ['growl', 2700], ['voice-far', 4300], ['mare-flesh', 6200]],
-            'HIVE_PURGE':          [['sting', 400], ['roar', 1900], ['creep-left', 3200], ['mare-small', 4800]],
-            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1600], ['mare-teeth', 2800], ['mare-charge', 4600]],
-            'CORE_CONFRONTATION':  [['heart', 500], ['whisper-many', 2300], ['breath', 3600], ['knock', 5100], ['mare-eye', 6600], ['mare-stare', 8200]],
-            'HACK_ENTRY':          [['glitch', 700], ['whisper', 2400], ['creep-right', 4200], ['knock', 6000]],
-            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['creep-left', 3000], ['corner', 4600]],
-            'HACK_KEY':            [['whisper', 900], ['scrape', 2800], ['mare-eye', 4600]],
-            'HACK_DUEL':           [['sting', 400], ['roar', 1800], ['shake-big', 3000], ['mare-teeth', 4400]],
-            'HACK_SNEAK':          [['knock', 1200], ['scrape', 3000], ['creep-right', 4400], ['mare-corner-mini', 5800]],
-            'HACK_DIVE':           [['void', 800], ['voice-far', 3600], ['mare-eye', 5400]],
-            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2300], ['mare-flesh', 4400]],
-            'BURN_ENTRY':          [['roar', 300], ['glitch', 1500], ['creep-left', 3000], ['mare-small', 4400]],
-            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1200], ['mare-teeth', 2600], ['mare-charge', 4400]],
-            'BURN_EMP':            [['glitch', 400], ['thud', 1800], ['void', 3200], ['mare-eye', 5000]],
-            'BURN_DARK':           [['void', 600], ['growl', 2100], ['whisper', 3300], ['creep-right', 4800], ['mare-stare', 6200]],
-            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2500], ['mare-charge', 4300]]
+            'ARIS_DEATH':          [['mare-teeth', 950], ['growl', 2700], ['voice-far', 4300], ['mare-reach', 6200]],
+            'HIVE_PURGE':          [['sting', 400], ['roar', 1900], ['creep-left', 3200], ['mare-grin', 4800], ['sudden', 8200]],
+            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1600], ['mare-teeth', 2800], ['mare-charge', 4600], ['mare-reach', 6800]],
+            'CORE_CONFRONTATION':  [['heart', 500], ['whisper-many', 2300], ['breath', 3600], ['knock', 5100], ['mare-soul', 6800], ['mare-stare', 9000]],
+            'HACK_ENTRY':          [['glitch', 700], ['whisper', 2400], ['creep-right', 4200], ['knock', 6000], ['mare-soul', 8400]],
+            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['creep-left', 3000], ['corner', 4600], ['sudden', 8000]],
+            'HACK_KEY':            [['whisper', 900], ['scrape', 2800], ['mare-eye', 4600], ['mare-grin', 6800]],
+            'HACK_DUEL':           [['sting', 400], ['roar', 1800], ['shake-big', 3000], ['mare-reach', 4400]],
+            'HACK_SNEAK':          [['knock', 1200], ['scrape', 3000], ['creep-right', 4400], ['mare-behind', 5800]],
+            'HACK_DIVE':           [['void', 800], ['voice-far', 3600], ['mare-eye', 5400], ['sudden-soul', 8600]],
+            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2300], ['mare-rot', 4400], ['mare-soul', 6600]],
+            'BURN_ENTRY':          [['roar', 300], ['glitch', 1500], ['creep-left', 3000], ['mare-grin', 4600], ['sudden', 8400]],
+            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1200], ['mare-teeth', 2600], ['mare-charge', 4400], ['mare-reach', 6600]],
+            'BURN_EMP':            [['glitch', 400], ['thud', 1800], ['void', 3200], ['mare-eye', 5000], ['mare-behind', 7200]],
+            'BURN_DARK':           [['void', 600], ['growl', 2100], ['whisper', 3300], ['creep-right', 4800], ['mare-soul', 6200], ['sudden-reach', 9400]],
+            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2500], ['mare-charge', 4300], ['mare-reach', 6400]]
         };
 
         // nodes with a lighter ambient (but ALL nodes get some ambience now)
@@ -652,6 +792,82 @@ HORROR_JS = r'''
                     }
                     break;
                 case 'static': fnoise(0.3, 0.22, 0, 2500); break;
+                case 'screech': {
+                    // BRUTAL loud metallic grinding screech — the "heart-in-your-throat" hit
+                    const clusters = [820, 1030, 1240, 1660, 2100, 2790];
+                    clusters.forEach((f, i) => {
+                        const o = ctx.createOscillator(); o.type = 'sawtooth';
+                        o.frequency.setValueAtTime(f * (0.98 + Math.random() * 0.06), now);
+                        o.frequency.linearRampToValueAtTime(f * (1.4 + Math.random() * 0.5), now + 0.7);
+                        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+                        bp.frequency.setValueAtTime(1200 + i * 260, now);
+                        bp.frequency.exponentialRampToValueAtTime(4200, now + 0.6); bp.Q.value = 9;
+                        const g = ctx.createGain();
+                        g.gain.setValueAtTime(0.0001, now); g.gain.linearRampToValueAtTime(0.34, now + 0.008);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                        o.connect(bp); bp.connect(g); g.connect(out); o.start(now); o.stop(now + 0.85);
+                    });
+                    const len = Math.floor(ctx.sampleRate * 0.8);
+                    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+                    const d = buf.getChannelData(0);
+                    for (let i = 0; i < len; i++) {
+                        let v = (Math.random() * 2 - 1);
+                        v *= (0.5 + 0.5 * Math.sin(i / 40));
+                        v = Math.tanh(v * 4);
+                        d[i] = v * Math.pow(1 - i / len, 0.4);
+                    }
+                    const src = ctx.createBufferSource(); src.buffer = buf;
+                    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1400;
+                    const ng = ctx.createGain(); ng.gain.setValueAtTime(0.55, now); ng.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    src.connect(hp); hp.connect(ng); ng.connect(out); src.start(now); src.stop(now + 0.85);
+                    const sub = ctx.createOscillator(); sub.type = 'sine';
+                    sub.frequency.setValueAtTime(90, now); sub.frequency.exponentialRampToValueAtTime(24, now + 0.5);
+                    const sg = ctx.createGain(); sg.gain.setValueAtTime(0.95, now); sg.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    sub.connect(sg); sg.connect(out); sub.start(now); sub.stop(now + 0.6);
+                    break;
+                }
+                case 'attack': {
+                    // "КОБЫЛА НАПАЛА" — layered agonized screams + roar + galloping stomps
+                    // 1) two overlapping vocal-fry screams (formant bandpass + vibrato)
+                    const scream = (f0, f1, delay, gain, bpf) => {
+                        const t0 = now + delay;
+                        const o = ctx.createOscillator(); o.type = 'sawtooth';
+                        o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(Math.max(1, f1), t0 + 0.9);
+                        const lfo = ctx.createOscillator(); lfo.frequency.value = 42 + Math.random() * 25;
+                        const lg = ctx.createGain(); lg.gain.value = 65; lfo.connect(lg); lg.connect(o.frequency);
+                        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = bpf; bp.Q.value = 3.5;
+                        const g = ctx.createGain();
+                        g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(gain, t0 + 0.04);
+                        g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.95);
+                        o.connect(bp); bp.connect(g); g.connect(out);
+                        o.start(t0); o.stop(t0 + 1.0); lfo.start(t0); lfo.stop(t0 + 1.0);
+                    };
+                    scream(300, 1700, 0, 0.34, 1200);
+                    scream(240, 1400, 0.06, 0.28, 900);
+                    scream(420, 2200, 0.12, 0.22, 1700);
+                    // 2) low roar bed
+                    const o2 = ctx.createOscillator(); o2.type = 'sawtooth';
+                    o2.frequency.setValueAtTime(70, now); o2.frequency.exponentialRampToValueAtTime(34, now + 1.0);
+                    const rlfo = ctx.createOscillator(); rlfo.frequency.value = 20;
+                    const rlg = ctx.createGain(); rlg.gain.value = 24; rlfo.connect(rlg); rlg.connect(o2.frequency);
+                    const g2 = ctx.createGain(); g2.gain.setValueAtTime(0.0001, now); g2.gain.linearRampToValueAtTime(0.4, now + 0.05); g2.gain.exponentialRampToValueAtTime(0.001, now + 1.05);
+                    o2.connect(g2); g2.connect(out); o2.start(now); o2.stop(now + 1.1); rlfo.start(now); rlfo.stop(now + 1.1);
+                    // 3) galloping metal stomps rushing in
+                    [0, 0.16, 0.30, 0.42, 0.52, 0.60].forEach((tt, i) => {
+                        const t0 = now + tt;
+                        const o = ctx.createOscillator(); o.type = 'sine';
+                        o.frequency.setValueAtTime(150 - i * 8, t0); o.frequency.exponentialRampToValueAtTime(30, t0 + 0.12);
+                        const g = ctx.createGain(); g.gain.setValueAtTime(0.5 + i * 0.06, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14);
+                        o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + 0.16);
+                    });
+                    // 4) impact boom at the "hit"
+                    const boom = ctx.createOscillator(); boom.type = 'sine';
+                    boom.frequency.setValueAtTime(120, now + 0.6); boom.frequency.exponentialRampToValueAtTime(22, now + 1.1);
+                    const bg = ctx.createGain(); bg.gain.setValueAtTime(0.0001, now + 0.6); bg.gain.linearRampToValueAtTime(0.95, now + 0.63); bg.gain.exponentialRampToValueAtTime(0.001, now + 1.15);
+                    boom.connect(bg); bg.connect(out); boom.start(now + 0.6); boom.stop(now + 1.2);
+                    fnoise(0.9, 0.4, 0, 700);
+                    break;
+                }
                 case 'child-laugh': {
                     // detuned music-box-like giggle: short rising notes with vibrato
                     const notes = [880, 1046, 1244, 1046, 1318, 987];
@@ -775,7 +991,7 @@ HORROR_JS = r'''
         function hrMare(kind, ms) {
             const layer = document.getElementById('mare-layer');
             const img = document.getElementById('mare-img');
-            const key = ['void','teeth','eyes','pale','leap','stare','shadow','eye','flesh','charge'].indexOf(kind) !== -1 ? kind : 'wake';
+            const key = ['void','teeth','eyes','pale','leap','stare','shadow','eye','flesh','charge','soul','grin','reach','behind','crack','rot','turn','maw','hand'].indexOf(kind) !== -1 ? kind : 'wake';
             img.src = MARE_IMGS[key];
             layer.className = 'mare-on mare-' + key;
             setTimeout(() => { layer.className = ''; }, ms || 300);
@@ -864,6 +1080,34 @@ HORROR_JS = r'''
             setTimeout(() => { hrMusicDuck(0); then(); }, 700);
         }
 
+        // ---- SUDDEN scare: NO buildup, instant brutal screech + random face + CAPS phrase ----
+        // This is the "heart-in-your-throat" one. Silence -> BANG.
+        function suddenScare(faceKey) {
+            if (!HORROR.enabled) return;
+            const face = faceKey || randFace();
+            const phrase = randScreamPhrase();
+            hrMusicDuck(0);
+            hrBlackout(70);           // one-frame black then SLAM
+            setTimeout(() => {
+                hrPlay('screech');     // LOUD grinding screech
+                if (Math.random() < 0.5) hrPlay('attack');   // sometimes: full assault scream
+                hrPlay('impact');
+                hrPlay('scream');
+                hrMare(face, 620);
+                hrShake(900, 46);
+                hrFlash('red', 380);
+                hrStrobe(5);
+                noiseStorm(900);
+                hrDreadTextFixed(phrase, 1600);
+                hrTitleFlash(CREEPY_TITLES[Math.floor(Math.random() * CREEPY_TITLES.length)], 4000);
+                dreadSet(Math.min(100, HORROR.dread + 22));
+                setTimeout(() => { hrMare(randFace(), 150); hrPlay('shriek'); hrFlash('white', 110); hrShake(360, 20); }, 380);
+                setTimeout(() => { hrCorner(150); hrPlay('whisper-name'); }, 900);
+                setTimeout(() => { hrMusicDuck(0.35); hrPlay('heart'); }, 1400);
+                setTimeout(() => { hrMusicDuck(1); }, 3400);
+            }, 70);
+        }
+
         function noiseStorm(ms) {
             noiseOn = true;
             document.body.classList.add('glitch');
@@ -890,6 +1134,9 @@ HORROR_JS = r'''
                 hrStrobe(6);
                 noiseStorm(1300);
                 hrWakeText(1900);
+                hrPlay('screech');
+                hrTitleFlash('КОБЫЛА проснулась', 6000);
+                setTimeout(() => { hrMare('soul', 300); hrPlay('whisper-name'); hrDreadTextFixed('КОБЫЛА ПРОСНУЛАСЬ', 1600); }, 200);
                 setTimeout(() => { hrMare('charge', 260); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('red', 240); hrShake(650, 34); }, 420);
                 setTimeout(() => { hrMare('teeth', 220); hrPlay('roar'); hrFlash('white', 180); hrShake(700, 32); }, 1150);
                 setTimeout(() => { hrMare('flesh', 260); hrPlay('growl'); hrFlash('red', 220); hrShake(600, 26); }, 1900);
@@ -902,7 +1149,92 @@ HORROR_JS = r'''
             setTimeout(() => { hrVig(true); startAmb(); dreadSet(80); }, 2400);
         }
 
-        // ---------- ENDING SCARES (guaranteed direct schedule) ----------
+        // ================= INTRO SCARE — hits at the very start (fourth-wall) =================
+        // Sequence: dark hush -> whisper your name -> the "TURN AROUND" behind-you image with a
+        // grin -> she ATTACKS: screams, maw fills screen, gallop, screen "cracks" -> control returns.
+        function introScare() {
+            if (!HORROR.enabled) { return; }
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            cancelHorrorTimers(); stopAmb();
+            hrMusicDuck(0);
+            document.body.classList.add('wake-mode');
+            hrVig(true);
+            dreadSet(60);
+
+            // Phase 0: sudden black + heartbeat + whisper (false calm)
+            hrBlackout(700);
+            hrPlay('heart');
+            setTimeout(() => hrPlay('whisper-name'), 400);
+            setTimeout(() => hrPlay('breath'), 1000);
+
+            // Phase 1: fourth-wall — she is standing behind YOU. "TURN AROUND."
+            setTimeout(() => {
+                hrMare('turn', 2200);                 // person at PC, mare grinning behind
+                hrPlay('child-laugh');
+                hrDreadTextFixed(lang === 'ru' ? 'ОБЕРНИСЬ.' : 'TURN AROUND.', 2000);
+                hrTitleFlash(lang === 'ru' ? 'обернись' : 'turn around', 6000);
+                hrShake(400, 6);
+            }, 1600);
+            setTimeout(() => {
+                hrDreadTextFixed(lang === 'ru' ? 'ОНА СТОИТ ПРЯМО ЗА ТОБОЙ.' : 'SHE IS RIGHT BEHIND YOU.', 1800);
+                hrPlay('metal-drag');
+            }, 3000);
+
+            // Phase 2: she ATTACKS — full assault
+            setTimeout(() => {
+                hrBlackout(140);
+                setTimeout(() => {
+                    hrPlay('attack');                 // layered screams + roar + gallop
+                    hrPlay('screech');
+                    hrPlay('impact');
+                    hrPlay('sub-boom');
+                    hrMare('maw', 900);               // maw fills the screen
+                    hrShake(1400, 56);
+                    hrFlash('red', 500);
+                    hrStrobe(7);
+                    noiseStorm(1500);
+                    hrWakeText(2000);                 // "КОБЫЛА ПРОСНУЛАСЬ."
+                    hrDreadTextFixed(lang === 'ru' ? 'КОБЫЛА НАПАЛА' : 'THE MARE ATTACKS', 2000);
+                    dreadSet(100);
+                    setTimeout(() => { hrMare('reach', 300); hrPlay('scream'); hrFlash('white', 150); hrShake(700, 40); }, 460);
+                    setTimeout(() => { hrMare('hand', 320); hrPlay('screech'); hrFlash('red', 260); hrShake(760, 36); hrDreadTextFixed(lang === 'ru' ? 'ОНА ХВАТАЕТ ТЕБЯ' : 'SHE GRABS YOU', 1400); }, 1150);
+                    setTimeout(() => { hrMare('soul', 380); hrPlay('roar'); hrFlash('red', 240); hrShake(620, 30); }, 1950);
+                    setTimeout(() => { hrMare('crack', 340); hrPlay('screech'); hrDreadTextFixed(lang === 'ru' ? 'ТЫ НЕ ДОЛЖЕН БЫЛ ПРОСЫПАТЬ ЕЁ.' : 'YOU SHOULD NOT HAVE WOKEN HER.', 2200); }, 2700);
+                    setTimeout(() => { hrCorner(220); hrPlay('whisper-name'); }, 3400);
+                    setTimeout(() => { hrMusicDuck(0.3); hrPlay('heart'); }, 4000);
+                }, 140);
+            }, 4400);
+
+            // hand control back to a haunted game
+            setTimeout(() => {
+                document.body.classList.remove('wake-mode');
+                hrMusicDuck(1);
+                hrVig(true);
+                startAmb();
+                dreadSet(72);
+            }, 9000);
+        }
+
+        function maybeIntroScare() {
+            if (HORROR.introDone) return;
+            HORROR.introDone = true;
+            // Browsers suspend WebAudio until a user gesture, so a timer-only intro would be
+            // SILENT (no screams). Arm it to fire on the first click/keypress => audio unlocks
+            // and the assault lands with full sound. Fallback timer if they never interact.
+            let fired = false;
+            const go = () => {
+                if (fired) return; fired = true;
+                document.removeEventListener('pointerdown', go, true);
+                document.removeEventListener('keydown', go, true);
+                clearTimeout(fb);
+                try { if (musicEngine && musicEngine.ctx && musicEngine.ctx.resume) musicEngine.ctx.resume(); } catch (e) {}
+                setTimeout(() => introScare(), 350);   // brief beat after the gesture, then hit
+            };
+            document.addEventListener('pointerdown', go, true);
+            document.addEventListener('keydown', go, true);
+            const fb = setTimeout(go, 9000);           // fallback: fire anyway after 9s
+        }
+        function triggerIntro() { introScare(); }
         function horrorEnding(id) {
             cancelHorrorTimers(); stopAmb();
             const cfg = {
@@ -927,6 +1259,7 @@ HORROR_JS = r'''
                 setTimeout(() => {
                     hrPlay('impact');
                     hrPlay(sound);
+                    hrPlay('screech');
                     hrPlay('sub-boom');
                     hrMare(mareKey, 820);
                     hrShake(1500, 54);
@@ -934,7 +1267,8 @@ HORROR_JS = r'''
                     hrStrobe(6);
                     noiseStorm(1300);
                     hrDreadTextFixed(phrase, 3000);
-                    setTimeout(() => { hrMare('eye', 200); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('white', 150); hrShake(560, 26); }, 440);
+                    hrTitleFlash('она нашла тебя', 6000);
+                    setTimeout(() => { hrMare('soul', 220); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('white', 150); hrShake(560, 26); }, 440);
                     setTimeout(() => { hrMare('charge', 240); hrPlay('roar'); hrFlash('red', 280); hrShake(720, 32); }, 1180);
                     setTimeout(() => { hrMare('void', 260); hrPlay('growl'); hrFlash('red', 240); hrShake(600, 26); }, 1950);
                     setTimeout(() => { hrCorner(200); hrPlay('whisper-name'); }, 2600);
@@ -987,6 +1321,26 @@ HORROR_JS = r'''
                 case 'creep-left': hrCreep('left', 4000); hrPlay('breath'); dreadSet(HORROR.dread + 4); break;
                 case 'creep-right': hrCreep('right', 4000); hrPlay('breath'); dreadSet(HORROR.dread + 4); break;
                 case 'dread-line': hrDreadText(160); hrPlay('whisper'); break;
+                case 'sudden': suddenScare(); break;
+                case 'sudden-soul': suddenScare('soul'); break;
+                case 'sudden-reach': suddenScare('reach'); break;
+                case 'mare-soul':
+                    scareBuild(() => { hrMare('soul', 900); hrPlay('screech'); hrPlay('whisper-name'); hrFlash('red', 300); hrShake(700, 22); hrDreadTextFixed('ОНА СМОТРИТ В ТЕБЯ', 2000); dreadSet(HORROR.dread + 15); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3400); });
+                    break;
+                case 'mare-grin':
+                    scareBuild(() => { hrMare('grin', 560); hrPlay('scream'); hrPlay('child-laugh'); hrFlash('red', 300); hrShake(600, 26); dreadSet(HORROR.dread + 14); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3200); });
+                    break;
+                case 'mare-reach':
+                    scareBuild(() => { hrMare('reach', 620); hrPlay('screech'); hrPlay('impact'); hrFlash('red', 400); hrStrobe(4); hrShake(900, 44); noiseStorm(800); hrDreadTextFixed('КОБЫЛА ПРИШЛА ЗА ТОБОЙ', 1800); dreadSet(HORROR.dread + 20); hrMusicDuck(0); setTimeout(() => hrMusicDuck(1), 3600); });
+                    break;
+                case 'mare-rot':
+                    scareBuild(() => { hrMare('rot', 560); hrPlay('growl'); hrPlay('bone-crack'); hrFlash('red', 260); hrShake(540, 22); dreadSet(HORROR.dread + 12); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3000); });
+                    break;
+                case 'mare-turn':
+                    scareBuild(() => { hrMare('turn', 900); hrPlay('child-laugh'); hrPlay('whisper-name'); hrDreadTextFixed('ОБЕРНИСЬ.', 1800); hrFlash('red', 220); hrShake(500, 16); dreadSet(HORROR.dread + 14); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3200); });
+                    break;
+                case 'mare-attack':
+                    suddenScare('maw'); hrPlay('attack'); break;
                 case 'wake': wakeScare(); break;
                 case 'roar': hrPlay('roar'); hrShake(650, 22); hrFlash('red', 300); dreadSet(HORROR.dread + 8); break;
                 case 'shake-big': hrPlay('roar'); hrShake(850, 32); hrFlash('red', 360); noiseStorm(700); break;
@@ -1021,6 +1375,7 @@ HORROR_JS = r'''
             hrVig(true);
             hrDroneStart();
             hrMusicDuck(0.1);
+            hrTitleCreep();
             const t = [];
             t.push(setInterval(() => { if (HORROR.enabled) { hrPlay('heart'); } }, HORROR.beatInterval));
             t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.55 + HORROR.dread / 150) hrPlay('whisper'); }, 2800));
@@ -1056,6 +1411,17 @@ HORROR_JS = r'''
                     hrPlay('breath');
                 }
             }, 13000));
+            // v7: UNPREDICTABLE sudden screech-scare — the "out of nowhere" hit.
+            // Rare at low dread, more likely deep in. Random long interval so it's never expected.
+            t.push(setInterval(() => {
+                if (!HORROR.enabled) return;
+                const p = 0.05 + HORROR.dread * 0.0032;   // ~5% shallow, ~37% at max dread
+                if (Math.random() < p) suddenScare();
+            }, 16000 + Math.floor(Math.random() * 12000)));
+            // v7: rare PERSONAL fourth-wall haunt (she knows your machine/time)
+            t.push(setInterval(() => {
+                if (HORROR.enabled && HORROR.dread > 25 && Math.random() < 0.14 + HORROR.dread / 400) personalHaunt();
+            }, 26000 + Math.floor(Math.random() * 14000)));
             HORROR.ambTimers = HORROR.ambTimers.concat(t);
         }
 
@@ -1077,6 +1443,14 @@ HORROR_JS = r'''
             if (nodeId === HORROR.lastNode) return;
             HORROR.lastNode = nodeId;
             cancelHorrorTimers(); stopAmb();
+
+            // INTRO SCARE: hit the player at the very start (once per playthrough).
+            // Fires on the first time we land on START — before any ambience.
+            if (!HORROR.introDone && HORROR.enabled && nodeId === 'START') {
+                maybeIntroScare();
+                return;   // let the intro own the screen; ambience starts after it
+            }
+
             const nd = storyData[nodeId];
             // ratchet dread up to this node's floor (tension only climbs deeper in)
             const floor = DREAD_FLOOR[nodeId];
@@ -1101,7 +1475,7 @@ HORROR_JS = r'''
             HORROR.enabled = !HORROR.enabled;
             const btn = document.getElementById('btn-screamers');
             btn.innerText = HORROR.enabled ? '👁 СКРИМЕРЫ: ВКЛ' : '👁 СКРИМЕРЫ: ВЫКЛ';
-            if (!HORROR.enabled) { cancelHorrorTimers(); stopAmb(); hrPlay('thud'); dreadSet(0); }
+            if (!HORROR.enabled) { cancelHorrorTimers(); stopAmb(); hrTitleRestore(); hrPlay('thud'); dreadSet(0); }
         }
 
         function triggerWake() { wakeScare(); }
@@ -1190,11 +1564,12 @@ HORROR_JS = r'''
 
             // creeping unease: faint reflection of the mare fades in near the end
             CRASH.timers.push(setTimeout(() => {
-                mini.src = MARE_IMGS['stare'];
+                mini.src = MARE_IMGS['soul'];
                 mini.style.transition = 'opacity 2.4s ease';
-                mini.style.opacity = 0.55;
+                mini.style.opacity = 0.6;
                 sc.classList.add('shudder');
                 hrPlay('growl');
+                hrTitleFlash('она в машине', 5000);
             }, t - 1400));
 
             // the payoff jumpscare, then hand control back
@@ -1204,20 +1579,21 @@ HORROR_JS = r'''
                 dreadSet(100);
                 hrBlackout(300);
                 setTimeout(() => {
-                    hrPlay('impact'); hrPlay('scream'); hrPlay('sub-boom');
-                    hrMare('charge', 760);
-                    hrShake(1200, 52); hrFlash('red', 460); hrStrobe(6); noiseStorm(1200);
+                    hrPlay('screech'); hrPlay('impact'); hrPlay('scream'); hrPlay('sub-boom');
+                    hrMare('crack', 820);          // her face BEHIND your shattered screen
+                    hrShake(1300, 54); hrFlash('red', 460); hrStrobe(6); noiseStorm(1300);
                     hrDreadTextFixed(lang === 'ru' ? 'ТЕПЕРЬ ИГРАЮ Я.' : 'MY TURN TO PLAY.', 2600);
-                    setTimeout(() => { hrMare('eye', 200); hrPlay('shriek'); hrFlash('white', 150); hrShake(560, 26); }, 440);
-                    setTimeout(() => { hrMare('teeth', 240); hrPlay('roar'); hrFlash('red', 260); hrShake(680, 30); }, 1180);
-                    setTimeout(() => { hrCorner(200); hrPlay('whisper-name'); }, 2000);
+                    hrTitleFlash('не оборачивайся', 6000);
+                    setTimeout(() => { hrMare('behind', 300); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('white', 150); hrShake(600, 28); hrDreadTextFixed(lang === 'ru' ? 'ОБЕРНИСЬ.' : 'TURN AROUND.', 1300); }, 480);
+                    setTimeout(() => { hrMare('soul', 260); hrPlay('roar'); hrFlash('red', 260); hrShake(680, 30); }, 1250);
+                    setTimeout(() => { hrCorner(200); hrPlay('whisper-name'); }, 2100);
                 }, 300);
                 setTimeout(() => {
                     document.body.classList.remove('wake-mode');
                     CRASH.active = false;
                     hrMusicDuck(1);
                     startAmb(); dreadSet(80);
-                }, 3200);
+                }, 3400);
             }, t + 600));
         }
 
@@ -1266,7 +1642,7 @@ def main():
     a = '<button class="btn-ctrl" id="btn-novel" onclick="openNovel()">📖 РОМАН</button>'
     assert a in h, 'header anchor not found'
     h = h.replace(a,
-                  '<button class="btn-ctrl" id="btn-screamers" onclick="toggleScreamers()">👁 СКРИМЕРЫ: ВКЛ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-wake" onclick="triggerWake()">🐴 ПОБУДИТЬ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-crash" onclick="triggerCrash()">💀 СБОЙ</button>\n                ' + a, 1)
+                  '<button class="btn-ctrl" id="btn-screamers" onclick="toggleScreamers()">👁 СКРИМЕРЫ: ВКЛ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-wake" onclick="triggerWake()">🐴 ПОБУДИТЬ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-crash" onclick="triggerCrash()">💀 СБОЙ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-intro" onclick="triggerIntro()">🔪 ОБЕРНИСЬ</button>\n                ' + a, 1)
 
     # C) overlays before <!-- Modal -->
     a = '<!-- Modal -->'
@@ -1287,6 +1663,10 @@ def main():
     js = js.replace('__L__', MARE['leap']).replace('__S__', MARE['stare'])
     js = js.replace('__SH__', MARE['shadow']).replace('__EY__', MARE['eye'])
     js = js.replace('__FL__', MARE['flesh']).replace('__CH__', MARE['charge'])
+    js = js.replace('__SL__', MARE['soul']).replace('__GR__', MARE['grin'])
+    js = js.replace('__RE__', MARE['reach']).replace('__BH__', MARE['behind'])
+    js = js.replace('__CR__', MARE['crack']).replace('__RT__', MARE['rot'])
+    js = js.replace('__TU__', MARE['turn']).replace('__MW__', MARE['maw']).replace('__HD__', MARE['hand'])
     h = h.replace(onload, js + '\n\n        ' + onload, 1)
 
     # F) hook horrorCheck into updateUI (before ending branch)
@@ -1296,6 +1676,13 @@ def main():
 
     # G) hrInit in onload
     h = h.replace('window.onload = () => {', 'window.onload = () => {\n            hrInit();', 1)
+
+    # H) reset horror state on restart (re-arm one-shot crash, restore title)
+    ranchor = "currentNodeId = 'START';\n            currentTrack = 'ambient';"
+    if ranchor in h:
+        h = h.replace(ranchor,
+                      ranchor + "\n            try { HORROR.crashDone = false; HORROR.crashArmed = false; HORROR.introDone = false; HORROR.dread = 0; HORROR.lastNode = null; cancelHorrorTimers(); stopAmb(); hrTitleRestore(); } catch (e) {}",
+                      1)
 
     open(out, 'w', encoding='utf-8').write(h)
     print('OK ->', out)
