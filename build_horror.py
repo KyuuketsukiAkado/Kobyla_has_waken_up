@@ -33,6 +33,10 @@ MARE = {
     'pale':  b64('_assets/mare_pale.jpg'),
     'leap':  b64('_assets/mare_leap.jpg'),
     'stare': b64('_assets/mare_stare.jpg'),
+    'shadow': b64('_assets/mare_shadow.jpg'),
+    'eye':    b64('_assets/mare_eye.jpg'),
+    'flesh':  b64('_assets/mare_flesh.jpg'),
+    'charge': b64('_assets/mare_charge.jpg'),
 }
 
 CSS = r'''
@@ -55,6 +59,10 @@ CSS = r'''
         #mare-layer.mare-teeth #mare-img { filter: contrast(1.55) saturate(1.5) brightness(0.82); }
         #mare-layer.mare-leap #mare-img { filter: contrast(1.65) saturate(1.7) brightness(0.78); }
         #mare-layer.mare-stare #mare-img { filter: contrast(1.5) brightness(0.9); }
+        #mare-layer.mare-charge #mare-img { filter: contrast(1.7) saturate(1.8) brightness(0.8); }
+        #mare-layer.mare-eye #mare-img { filter: contrast(1.6) brightness(0.95); }
+        #mare-layer.mare-flesh #mare-img { filter: contrast(1.5) saturate(1.6) brightness(0.78); }
+        #mare-layer.mare-shadow #mare-img { filter: contrast(1.4) brightness(0.6); }
         @keyframes mareIn {
             0% { transform: scale(1.1) translate(0,0); opacity: 0; }
             100% { transform: scale(1.5) translate(-2%, -3%); opacity: 1; }
@@ -147,15 +155,123 @@ CSS = r'''
             0%,100% { transform: scale(1); }
             50% { transform: scale(1.014); }
         }
-        body.dread-high { filter: sepia(0.35) hue-rotate(-18deg) saturate(1.55); }
         .btn-ctrl-danger { border-color: var(--glow-red) !important; }
         .btn-ctrl-danger:hover { box-shadow: 0 0 14px var(--glow-red) !important; }
+        /* ================= FAKE SYSTEM CRASH (fourth-wall) ================= */
+        #syscrash {
+            position: fixed; inset: 0; z-index: 990; display: none;
+            background: #05060a; color: #c8d0d8;
+            font-family: 'Courier New', ui-monospace, monospace;
+            padding: 5vh 6vw; overflow: hidden; cursor: none;
+        }
+        #syscrash.on { display: block; }
+        #syscrash.bsod { background: #0a0026; color: #d8dcff; }
+        #syscrash.panic { background: #120003; color: #ffd7d7; }
+        #syscrash .sc-scan {
+            position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.35) 3px, rgba(0,0,0,0) 4px);
+            mix-blend-mode: multiply; animation: scRoll 0.5s linear infinite;
+        }
+        @keyframes scRoll { 0% { transform: translateY(0); } 100% { transform: translateY(4px); } }
+        #syscrash .sc-head {
+            font-size: clamp(1rem, 3.2vw, 1.9rem); font-weight: 700; letter-spacing: 0.06em;
+            margin-bottom: 1.2em; text-shadow: 0 0 10px currentColor;
+        }
+        #syscrash .sc-body { font-size: clamp(0.72rem, 1.9vw, 1.05rem); line-height: 1.55; white-space: pre-wrap; }
+        #syscrash .sc-body .c-ok { color: #37e07a; }
+        #syscrash .sc-body .c-err { color: #ff3b53; text-shadow: 0 0 8px rgba(255,26,64,0.8); }
+        #syscrash .sc-body .c-warn { color: #ffd24a; }
+        #syscrash .sc-body .c-her { color: #ff7a90; font-weight: 700; text-shadow: 0 0 12px rgba(255,26,64,0.9); }
+        #syscrash .sc-cursor { display: inline-block; width: 0.6em; height: 1.05em; background: currentColor;
+            vertical-align: -0.15em; animation: scBlink 0.7s steps(1) infinite; }
+        @keyframes scBlink { 0%,50% { opacity: 1; } 51%,100% { opacity: 0; } }
+        #syscrash.shudder { animation: scShudder 0.09s steps(2) infinite; }
+        @keyframes scShudder {
+            0% { transform: translate(0,0); } 25% { transform: translate(-3px,1px); }
+            50% { transform: translate(2px,-2px); } 75% { transform: translate(-1px,2px); }
+            100% { transform: translate(0,0); }
+        }
+        #syscrash.rgb { text-shadow: 2px 0 rgba(255,26,64,0.8), -2px 0 rgba(0,216,255,0.7); }
+        #syscrash .sc-mini {
+            position: absolute; right: 5vw; bottom: 5vh; width: 22vw; min-width: 160px; max-width: 300px;
+            opacity: 0; filter: contrast(1.5) saturate(1.4) brightness(0.85);
+        }
+        /* ---- v6 INFERNAL additions ---- */
+        #creeper {
+            position: fixed; bottom: 0; z-index: 84; pointer-events: none;
+            width: 34vw; min-width: 240px; max-width: 460px; height: auto;
+            opacity: 0; filter: brightness(0.32) contrast(1.4) saturate(0.7);
+            transition: opacity 2.2s ease, transform 2.2s ease;
+        }
+        #creeper.creep-left { left: -4vw; transform: translateY(18%) scaleX(-1); }
+        #creeper.creep-right { right: -4vw; transform: translateY(18%); }
+        #creeper.creep-on { opacity: 0.5; }
+        #blood-edge {
+            position: fixed; inset: 0; z-index: 85; pointer-events: none; opacity: 0;
+            box-shadow: inset 0 0 120px 40px rgba(120,0,10,0.0);
+            transition: opacity 1.2s ease;
+            background:
+                radial-gradient(120% 90% at 50% -20%, rgba(180,0,20,0.0) 60%, rgba(120,0,10,0.35) 100%),
+                radial-gradient(120% 90% at 50% 120%, rgba(180,0,20,0.0) 60%, rgba(120,0,10,0.35) 100%);
+        }
+        #blood-edge.be-on { opacity: 1; animation: bePulse 2.4s ease-in-out infinite; }
+        @keyframes bePulse { 0%,100% { filter: brightness(0.85); } 50% { filter: brightness(1.3); } }
+        /* ---- v6.1: color tint lives on an OVERLAY, never on the text ---- */
+        #dread-tint {
+            position: fixed; inset: 0; z-index: 83; pointer-events: none;
+            opacity: 0; transition: opacity 1.4s ease; mix-blend-mode: multiply;
+            background: radial-gradient(ellipse at center, rgba(70,4,10,0.0) 30%, rgba(90,6,14,0.55) 100%);
+        }
+        body.dread-mid #dread-tint { opacity: 0.45; }
+        body.dread-high #dread-tint { opacity: 0.75; }
+        body.dread-extreme #dread-tint { opacity: 1; animation: tintPulse 3s ease-in-out infinite; }
+        @keyframes tintPulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+        body.dread-high #portrait-box { filter: contrast(1.3) saturate(1.7) brightness(1.05); }
+        body.dread-extreme #app-container { animation: breathScaleFast 2.2s ease-in-out infinite; }
+        @keyframes breathScaleFast { 0%,100% { transform: scale(1); } 50% { transform: scale(1.022); } }
+        /* ---- READABILITY GUARANTEE: the reading panel floats above every fx layer ---- */
+        .story-container {
+            position: relative;
+            z-index: 130 !important;
+            isolation: isolate;
+        }
+        body.horror-mode .story-container,
+        body.dread-mid .story-container,
+        body.dread-high .story-container,
+        body.dread-extreme .story-container {
+            background: #0b0810 !important;              /* fully opaque: no red bleed-through */
+            box-shadow: 0 0 30px rgba(0,0,0,0.95), 0 0 0 1px rgba(220,20,60,0.55);
+        }
+        body.horror-mode .story-text,
+        body.dread-mid .story-text,
+        body.dread-high .story-text,
+        body.dread-extreme .story-text {
+            color: #eef2f3 !important;
+            filter: none !important;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+        }
+        /* glitch shakes the portrait, never the reading panel */
+        body.glitch .story-container { animation: none !important; filter: none !important; }
+        #wake-text.on span.wt-alt { color: #ffdede; }
+        @keyframes cRoll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
 '''
 
 OVERLAYS = '''<!-- Horror Overlays -->
     <div id="mare-layer"><img id="mare-img" alt=""></div>
     <div id="wake-text"><span>КОБЫЛА ПРОСНУЛАСЬ.</span></div>
     <div id="dread-text"><span id="dread-text-span"></span></div>
+    <img id="creeper" alt="">
+    <div id="dread-tint"></div>
+    <div id="blood-edge"></div>
+    <div id="syscrash">
+        <div class="sc-scan"></div>
+        <div class="sc-head" id="sc-head"></div>
+        <div class="sc-body" id="sc-body"></div>
+        <img class="sc-mini" id="sc-mini" alt="">
+    </div>
     <canvas id="noise-canvas"></canvas>
     <div id="vignette"></div>
 
@@ -170,46 +286,77 @@ HORROR_JS = r'''
             'eyes':  'data:image/jpeg;base64,__E__',
             'pale':  'data:image/jpeg;base64,__P__',
             'leap':  'data:image/jpeg;base64,__L__',
-            'stare': 'data:image/jpeg;base64,__S__'
+            'stare': 'data:image/jpeg;base64,__S__',
+            'shadow':'data:image/jpeg;base64,__SH__',
+            'eye':   'data:image/jpeg;base64,__EY__',
+            'flesh': 'data:image/jpeg;base64,__FL__',
+            'charge':'data:image/jpeg;base64,__CH__'
         };
 
         const HORROR = {
             enabled: true,
             timers: [], ambTimers: [], ambOn: false,
-            lastNode: null, dread: 0, drone: null, beatInterval: 2600
+            lastNode: null, dread: 0, drone: null, beatInterval: 2600,
+            crashDone: false, crashArmed: false
         };
+
+        // nodes deep enough that a "system crash" feels earned; fired once per run
+        const CRASH_NODES = ['AUDIT_LAB_ENTRY', 'HACK_DIVE', 'BURN_DARK', 'CORE_CONFRONTATION'];
 
         const DREAD_PHRASES = [
             'НЕ ОБОРАЧИВАЙСЯ', 'ОНА СЛЫШИТ ТВОЁ СЕРДЦЕ', 'ЗА ТОБОЙ', 'ТЫ УЖЕ ЧАСТЬ ЕЁ',
             'ОНА ЗДЕСЬ', 'НЕ ДЫШИ', 'ОНА ВИДИТ ТЕБЯ', 'ТВОЁ ИМЯ В ЕЁ ЛОГАХ',
             'СМОТРИ В ГЛАЗА', 'ОНА УЖЕ ВНУТРИ', 'ЭТО НЕ СОН', 'ОТКРОЙ ГЛАЗА',
-            'ПОЗАДИ', 'ОНА ИДЁТ ЗА ТОБОЙ', 'ОНА ПОМНИТ ТЕБЯ'
+            'ПОЗАДИ', 'ОНА ИДЁТ ЗА ТОБОЙ', 'ОНА ПОМНИТ ТЕБЯ',
+            'ТЫ НЕ ОДИН', 'ОНА ДЫШИТ ТОБОЙ', 'ЗАКРОЙ ГЛАЗА И БЕГИ', 'СЛИШКОМ ПОЗДНО',
+            'ОНА ЗВАЛА ТЕБЯ ПО ИМЕНИ', 'ТВОЙ ПУЛЬС — ЕЁ МУЗЫКА', 'НЕ МОРГАЙ',
+            'ОНА В ЗЕРКАЛЕ', 'ТЫ УЖЕ МЁРТВ', 'ОНА УЛЫБАЕТСЯ', 'ОСТАНОВИСЬ',
+            'МЯСО ПОМНИТ', 'Я ЧУВСТВУЮ ТВОЙ СТРАХ', 'ТИШИНА — ЭТО ОНА',
+            'ОБЕРНИСЬ', 'НЕ ЧИТАЙ ДАЛЬШЕ', 'ОНА ПОД КОЖЕЙ', 'БЕГИ'
         ];
 
         const HORROR_EVENTS = {
-            'AUDIT_LOGS':          [['glitch', 600], ['whisper', 1500], ['thud', 3200], ['mare-corner-mini', 5400]],
-            'AUDIT_INFECTION':     [['sting', 400], ['mare-teeth', 1600]],
-            'AUDIT_HALLWAY2':      [['heart', 800], ['whisper', 3400], ['scrape', 5200], ['corner', 6400]],
-            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath', 2600], ['mare-small', 5200]],
-            'BIO_HORROR':          [['wake', 700]],
-            'ARIS_DEATH':          [['mare-teeth', 950], ['growl', 2700], ['voice-far', 4300]],
-            'HIVE_PURGE':          [['sting', 400], ['roar', 1900], ['mare-small', 3600]],
-            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1600], ['mare-teeth', 2800]],
-            'CORE_CONFRONTATION':  [['heart', 500], ['whisper-many', 2300], ['breath', 3600], ['knock', 5100], ['mare-stare', 6600]],
-            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['corner', 3600]],
-            'HACK_SNEAK':          [['knock', 1200], ['scrape', 3000], ['mare-corner-mini', 4600]],
-            'HACK_DIVE':           [['void', 800], ['voice-far', 3600]],
-            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2300]],
-            'BURN_ENTRY':          [['roar', 300], ['glitch', 1500], ['mare-small', 3400]],
-            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1200], ['mare-teeth', 2600]],
-            'BURN_DARK':           [['void', 600], ['growl', 2100], ['whisper', 3300], ['mare-stare', 4600]],
-            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2500]]
+            'START':               [['whisper', 1400], ['creep-left', 3200], ['dread-line', 6000]],
+            'AUDIT_ENTRY':         [['glitch', 700], ['whisper', 2200], ['knock', 4200], ['creep-right', 6200]],
+            'AUDIT_HALLWAY':       [['heart', 700], ['scrape', 2600], ['whisper-many', 4400], ['mare-shadow', 6400]],
+            'AUDIT_LOGS':          [['glitch', 600], ['whisper', 1500], ['thud', 3200], ['mare-eye', 5000], ['mare-corner-mini', 6800]],
+            'AUDIT_INFECTION':     [['sting', 400], ['mare-flesh', 1700], ['growl', 3600]],
+            'AUDIT_HALLWAY2':      [['heart', 800], ['whisper', 3400], ['scrape', 5200], ['creep-left', 6800], ['corner', 8200]],
+            'AUDIT_LAB_ENTRY':     [['drone-push', 400], ['breath', 2600], ['whisper-many', 4600], ['mare-small', 6400]],
+            'BIO_HORROR':          [['creep-right', 400], ['wake', 1400]],
+            'ARIS_DEATH':          [['mare-teeth', 950], ['growl', 2700], ['voice-far', 4300], ['mare-flesh', 6200]],
+            'HIVE_PURGE':          [['sting', 400], ['roar', 1900], ['creep-left', 3200], ['mare-small', 4800]],
+            'FINAL_BOSS':          [['roar', 250], ['shake-big', 1600], ['mare-teeth', 2800], ['mare-charge', 4600]],
+            'CORE_CONFRONTATION':  [['heart', 500], ['whisper-many', 2300], ['breath', 3600], ['knock', 5100], ['mare-eye', 6600], ['mare-stare', 8200]],
+            'HACK_ENTRY':          [['glitch', 700], ['whisper', 2400], ['creep-right', 4200], ['knock', 6000]],
+            'HACK_MATRIX':         [['glitch', 300], ['sting', 1400], ['creep-left', 3000], ['corner', 4600]],
+            'HACK_KEY':            [['whisper', 900], ['scrape', 2800], ['mare-eye', 4600]],
+            'HACK_DUEL':           [['sting', 400], ['roar', 1800], ['shake-big', 3000], ['mare-teeth', 4400]],
+            'HACK_SNEAK':          [['knock', 1200], ['scrape', 3000], ['creep-right', 4400], ['mare-corner-mini', 5800]],
+            'HACK_DIVE':           [['void', 800], ['voice-far', 3600], ['mare-eye', 5400]],
+            'HACK_VAULT':          [['mare-teeth', 700], ['whisper-many', 2300], ['mare-flesh', 4400]],
+            'BURN_ENTRY':          [['roar', 300], ['glitch', 1500], ['creep-left', 3000], ['mare-small', 4400]],
+            'BURN_CHARGE':         [['roar', 200], ['shake-big', 1200], ['mare-teeth', 2600], ['mare-charge', 4400]],
+            'BURN_EMP':            [['glitch', 400], ['thud', 1800], ['void', 3200], ['mare-eye', 5000]],
+            'BURN_DARK':           [['void', 600], ['growl', 2100], ['whisper', 3300], ['creep-right', 4800], ['mare-stare', 6200]],
+            'BURN_STAMPEDE':       [['mare-teeth', 800], ['whisper-many', 2500], ['mare-charge', 4300]]
         };
 
-        const AMBIENT_NODES = ['AUDIT_LOGS','AUDIT_INFECTION','AUDIT_HALLWAY2','AUDIT_LAB_ENTRY',
+        // nodes with a lighter ambient (but ALL nodes get some ambience now)
+        const AMBIENT_NODES = ['START','AUDIT_ENTRY','AUDIT_HALLWAY','AUDIT_LOGS','AUDIT_INFECTION','AUDIT_HALLWAY2','AUDIT_LAB_ENTRY',
             'BIO_HORROR','ARIS_DEATH','HIVE_PURGE','FINAL_BOSS','CORE_CONFRONTATION',
-            'HACK_MATRIX','HACK_SNEAK','HACK_DIVE','HACK_VAULT','BURN_DARK','BURN_STAMPEDE',
-            'BURN_CHARGE','BURN_EMP','BURN_ENTRY'];
+            'HACK_ENTRY','HACK_MATRIX','HACK_KEY','HACK_DUEL','HACK_SNEAK','HACK_DIVE','HACK_VAULT',
+            'BURN_DARK','BURN_STAMPEDE','BURN_CHARGE','BURN_EMP','BURN_ENTRY'];
+
+        // dread floor per node depth so tension only climbs deeper in
+        const DREAD_FLOOR = {
+            'START': 8, 'AUDIT_ENTRY': 18, 'HACK_ENTRY': 18, 'BURN_ENTRY': 20,
+            'AUDIT_HALLWAY': 26, 'AUDIT_LOGS': 30, 'AUDIT_INFECTION': 40, 'AUDIT_HALLWAY2': 42,
+            'AUDIT_LAB_ENTRY': 52, 'ARIS_DEATH': 66, 'BIO_HORROR': 90,
+            'HACK_MATRIX': 32, 'HACK_KEY': 40, 'HACK_SNEAK': 44, 'HACK_DUEL': 62, 'HACK_DIVE': 70, 'HACK_VAULT': 74,
+            'BURN_CHARGE': 60, 'BURN_EMP': 58, 'BURN_DARK': 72, 'BURN_STAMPEDE': 78,
+            'HIVE_PURGE': 70, 'FINAL_BOSS': 84, 'CORE_CONFRONTATION': 88
+        };
 
         function hrInit() {
             const nc = document.getElementById('noise-canvas');
@@ -505,6 +652,65 @@ HORROR_JS = r'''
                     }
                     break;
                 case 'static': fnoise(0.3, 0.22, 0, 2500); break;
+                case 'child-laugh': {
+                    // detuned music-box-like giggle: short rising notes with vibrato
+                    const notes = [880, 1046, 1244, 1046, 1318, 987];
+                    notes.forEach((n, i) => {
+                        const t0 = now + i * 0.12;
+                        const o = ctx.createOscillator(); o.type = 'triangle';
+                        o.frequency.setValueAtTime(n, t0); o.frequency.linearRampToValueAtTime(n * 1.06, t0 + 0.09);
+                        const vib = ctx.createOscillator(); vib.frequency.value = 14;
+                        const vg = ctx.createGain(); vg.gain.value = 22; vib.connect(vg); vg.connect(o.frequency);
+                        const g = ctx.createGain();
+                        g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.05, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.11);
+                        o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + 0.13); vib.start(t0); vib.stop(t0 + 0.13);
+                    });
+                    break;
+                }
+                case 'bone-crack': {
+                    for (let i = 0; i < 4; i++) {
+                        const t0 = now + i * (0.05 + Math.random() * 0.09);
+                        fnoise(0.04, 0.4 + Math.random() * 0.2, 0, 2200, t0);
+                    }
+                    osc('sine', 90, 40, now, 0.2, 0.3);
+                    break;
+                }
+                case 'metal-drag':
+                    osc('sawtooth', 1400, 180, now, 1.6, 0.09);
+                    osc('sawtooth', 900, 120, now + 0.1, 1.5, 0.07);
+                    fnoise(1.6, 0.16, 3200, 0);
+                    break;
+                case 'nails':
+                    osc('sawtooth', 5200, 3800, now, 0.5, 0.06);
+                    fnoise(0.5, 0.14, 6000, 0);
+                    break;
+                case 'sub-boom': {
+                    const o = ctx.createOscillator(); o.type = 'sine';
+                    o.frequency.setValueAtTime(60, now); o.frequency.exponentialRampToValueAtTime(18, now + 1.2);
+                    const g = ctx.createGain(); g.gain.setValueAtTime(0.9, now); g.gain.exponentialRampToValueAtTime(0.001, now + 1.3);
+                    o.connect(g); g.connect(out); o.start(now); o.stop(now + 1.35);
+                    fnoise(0.3, 0.4, 200, 0);
+                    break;
+                }
+                case 'whisper-name': {
+                    // two soft syllables like "Вэнс..." then hiss
+                    [0, 0.34].forEach((off, idx) => {
+                        const t0 = now + off;
+                        const len = Math.floor(ctx.sampleRate * 0.3);
+                        const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+                        const d = buf.getChannelData(0);
+                        const rate = 70 + idx * 30;
+                        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (0.3 + 0.7 * Math.sin(i / rate));
+                        const src = ctx.createBufferSource(); src.buffer = buf;
+                        const bp = ctx.createBiquadFilter(); bp.type = 'bandpass';
+                        bp.frequency.setValueAtTime(520 + idx * 140, t0); bp.Q.value = 9;
+                        const g = ctx.createGain();
+                        g.gain.setValueAtTime(0.0001, t0); g.gain.linearRampToValueAtTime(0.26, t0 + 0.06); g.gain.linearRampToValueAtTime(0.0001, t0 + 0.3);
+                        src.connect(bp); bp.connect(g); g.connect(out);
+                        src.start(t0); src.stop(t0 + 0.32);
+                    });
+                    break;
+                }
             }
         }
 
@@ -569,7 +775,7 @@ HORROR_JS = r'''
         function hrMare(kind, ms) {
             const layer = document.getElementById('mare-layer');
             const img = document.getElementById('mare-img');
-            const key = ['void','teeth','eyes','pale','leap','stare'].indexOf(kind) !== -1 ? kind : 'wake';
+            const key = ['void','teeth','eyes','pale','leap','stare','shadow','eye','flesh','charge'].indexOf(kind) !== -1 ? kind : 'wake';
             img.src = MARE_IMGS[key];
             layer.className = 'mare-on mare-' + key;
             setTimeout(() => { layer.className = ''; }, ms || 300);
@@ -580,6 +786,24 @@ HORROR_JS = r'''
             img.src = MARE_IMGS['wake'];
             layer.className = 'mare-on mare-corner';
             setTimeout(() => { layer.className = ''; }, ms || 140);
+        }
+        // ---- v6: slow creeping shadow at screen edge ----
+        let creeperTimer = null;
+        function hrCreep(side, holdMs) {
+            const c = document.getElementById('creeper');
+            if (!c) return;
+            c.src = MARE_IMGS['shadow'];
+            c.className = (side === 'left' ? 'creep-left' : 'creep-right');
+            // force reflow so transition runs
+            void c.offsetWidth;
+            c.classList.add('creep-on');
+            if (creeperTimer) clearTimeout(creeperTimer);
+            creeperTimer = setTimeout(() => { c.classList.remove('creep-on'); }, holdMs || 3400);
+        }
+        function hrBloodEdge(on) {
+            const be = document.getElementById('blood-edge');
+            if (!be) return;
+            if (on) be.classList.add('be-on'); else be.classList.remove('be-on');
         }
         function hrBlackout(ms) {
             const layer = document.getElementById('mare-layer');
@@ -623,9 +847,12 @@ HORROR_JS = r'''
         // ---------- DREAD ENGINE ----------
         function dreadSet(d) {
             HORROR.dread = Math.max(0, Math.min(100, d));
-            document.body.classList.toggle('dread-high', HORROR.dread > 55);
+            document.body.classList.toggle('dread-mid', HORROR.dread > 30 && HORROR.dread <= 55);
+            document.body.classList.toggle('dread-high', HORROR.dread > 55 && HORROR.dread <= 82);
+            document.body.classList.toggle('dread-extreme', HORROR.dread > 82);
+            hrBloodEdge(HORROR.dread > 45);
             hrDroneSet(HORROR.dread / 100);
-            const iv = 2600 - Math.floor(HORROR.dread / 100 * 1900);
+            const iv = 2600 - Math.floor(HORROR.dread / 100 * 2000);
             if (iv !== HORROR.beatInterval) { HORROR.beatInterval = iv; }
         }
 
@@ -652,24 +879,27 @@ HORROR_JS = r'''
             hrVig(true);
             document.body.classList.add('wake-mode');
             dreadSet(100);
-            hrBlackout(260);
+            hrBlackout(360);
             setTimeout(() => {
                 hrPlay('impact');
                 hrPlay('scream');
+                hrPlay('sub-boom');
                 hrMare('leap', 800);
-                hrShake(1100, 46);
+                hrShake(1100, 52);
                 hrFlash('red', 460);
-                hrStrobe(5);
-                noiseStorm(1200);
-                hrWakeText(1800);
-                setTimeout(() => { hrMare('teeth', 200); hrPlay('shriek'); hrFlash('red', 240); hrShake(600, 30); }, 420);
-                setTimeout(() => { hrMare('stare', 260); hrPlay('growl'); hrFlash('white', 180); hrShake(700, 30); }, 1250);
-                setTimeout(() => { hrCorner(170); hrPlay('whisper-word'); }, 2200);
-                setTimeout(() => { hrMusicDuck(0.3); hrPlay('heart'); }, 3000);
-                setTimeout(() => { hrMusicDuck(1); }, 5200);
-            }, 260);
-            setTimeout(() => { document.body.classList.remove('wake-mode'); }, 4600);
-            setTimeout(() => { hrVig(true); startAmb(); dreadSet(70); }, 1900);
+                hrStrobe(6);
+                noiseStorm(1300);
+                hrWakeText(1900);
+                setTimeout(() => { hrMare('charge', 260); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('red', 240); hrShake(650, 34); }, 420);
+                setTimeout(() => { hrMare('teeth', 220); hrPlay('roar'); hrFlash('white', 180); hrShake(700, 32); }, 1150);
+                setTimeout(() => { hrMare('flesh', 260); hrPlay('growl'); hrFlash('red', 220); hrShake(600, 26); }, 1900);
+                setTimeout(() => { hrMare('stare', 300); hrPlay('whisper-name'); hrFlash('red', 160); }, 2600);
+                setTimeout(() => { hrCorner(180); hrPlay('whisper-word'); }, 3200);
+                setTimeout(() => { hrMusicDuck(0.3); hrPlay('heart'); }, 3800);
+                setTimeout(() => { hrMusicDuck(1); }, 5800);
+            }, 360);
+            setTimeout(() => { document.body.classList.remove('wake-mode'); }, 5200);
+            setTimeout(() => { hrVig(true); startAmb(); dreadSet(80); }, 2400);
         }
 
         // ---------- ENDING SCARES (guaranteed direct schedule) ----------
@@ -693,22 +923,24 @@ HORROR_JS = r'''
             dreadSet(100);
             hrMusicDuck(0);
             setTimeout(() => {
-                hrBlackout(220);
+                hrBlackout(320);
                 setTimeout(() => {
                     hrPlay('impact');
                     hrPlay(sound);
-                    hrMare(mareKey, 780);
-                    hrShake(1400, 50);
+                    hrPlay('sub-boom');
+                    hrMare(mareKey, 820);
+                    hrShake(1500, 54);
                     hrFlash('red', 460);
-                    hrStrobe(5);
-                    noiseStorm(1200);
-                    hrDreadTextFixed(phrase, 2800);
-                    setTimeout(() => { hrMare('eyes', 190); hrPlay('shriek'); hrFlash('white', 150); hrShake(520, 24); }, 440);
-                    setTimeout(() => { hrMare('void', 240); hrPlay('growl'); hrFlash('red', 280); hrShake(700, 30); }, 1250);
-                    setTimeout(() => { hrCorner(180); hrPlay('whisper-word'); }, 2150);
-                    setTimeout(() => { hrMusicDuck(0.35); hrPlay('heart'); }, 3000);
-                    setTimeout(() => { hrMusicDuck(1); }, 5400);
-                }, 220);
+                    hrStrobe(6);
+                    noiseStorm(1300);
+                    hrDreadTextFixed(phrase, 3000);
+                    setTimeout(() => { hrMare('eye', 200); hrPlay('shriek'); hrPlay('bone-crack'); hrFlash('white', 150); hrShake(560, 26); }, 440);
+                    setTimeout(() => { hrMare('charge', 240); hrPlay('roar'); hrFlash('red', 280); hrShake(720, 32); }, 1180);
+                    setTimeout(() => { hrMare('void', 260); hrPlay('growl'); hrFlash('red', 240); hrShake(600, 26); }, 1950);
+                    setTimeout(() => { hrCorner(200); hrPlay('whisper-name'); }, 2600);
+                    setTimeout(() => { hrMusicDuck(0.35); hrPlay('heart'); }, 3200);
+                    setTimeout(() => { hrMusicDuck(1); }, 5800);
+                }, 320);
             }, 120);
         }
 
@@ -740,6 +972,21 @@ HORROR_JS = r'''
                 case 'mare-stare':
                     scareBuild(() => { hrMare('stare', 440); hrPlay('shriek'); hrFlash('white', 220); hrShake(700, 26); dreadSet(HORROR.dread + 14); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3200); });
                     break;
+                case 'mare-shadow':
+                    scareBuild(() => { hrMare('shadow', 620); hrPlay('metal-drag'); hrFlash('red', 200); hrShake(500, 16); dreadSet(HORROR.dread + 12); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3000); });
+                    break;
+                case 'mare-eye':
+                    scareBuild(() => { hrMare('eye', 500); hrPlay('whisper-name'); hrPlay('sting'); hrFlash('red', 260); hrShake(520, 20); dreadSet(HORROR.dread + 13); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3000); });
+                    break;
+                case 'mare-flesh':
+                    scareBuild(() => { hrMare('flesh', 520); hrPlay('scream'); hrPlay('bone-crack'); hrFlash('red', 320); hrShake(680, 28); dreadSet(HORROR.dread + 16); hrMusicDuck(0.3); setTimeout(() => hrMusicDuck(1), 3200); });
+                    break;
+                case 'mare-charge':
+                    scareBuild(() => { hrMare('charge', 620); hrPlay('impact'); hrPlay('scream'); hrPlay('sub-boom'); hrFlash('red', 420); hrStrobe(4); hrShake(900, 40); noiseStorm(800); dreadSet(HORROR.dread + 20); hrMusicDuck(0); setTimeout(() => hrMusicDuck(1), 3600); });
+                    break;
+                case 'creep-left': hrCreep('left', 4000); hrPlay('breath'); dreadSet(HORROR.dread + 4); break;
+                case 'creep-right': hrCreep('right', 4000); hrPlay('breath'); dreadSet(HORROR.dread + 4); break;
+                case 'dread-line': hrDreadText(160); hrPlay('whisper'); break;
                 case 'wake': wakeScare(); break;
                 case 'roar': hrPlay('roar'); hrShake(650, 22); hrFlash('red', 300); dreadSet(HORROR.dread + 8); break;
                 case 'shake-big': hrPlay('roar'); hrShake(850, 32); hrFlash('red', 360); noiseStorm(700); break;
@@ -797,6 +1044,18 @@ HORROR_JS = r'''
             t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.16 + HORROR.dread / 250) { hrBlackout(45); hrPlay('thud'); } }, 11000));
             t.push(setInterval(() => { if (HORROR.dread > 0) dreadSet(HORROR.dread - 0.8); }, 6000));
             t.push(setInterval(() => { if (HORROR.enabled && HORROR.dread < 70) dreadSet(HORROR.dread + 3); }, 18000));
+            // v6: extra ambient dread layers
+            t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.22 + HORROR.dread / 260) hrPlay('whisper-name'); }, 15000));
+            t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.18 + HORROR.dread / 300) hrPlay('child-laugh'); }, 19000));
+            t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.3 + HORROR.dread / 200) hrPlay('nails'); }, 16000));
+            t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.28 + HORROR.dread / 220) hrPlay('metal-drag'); }, 21000));
+            t.push(setInterval(() => { if (HORROR.enabled && Math.random() < 0.2 + HORROR.dread / 260) hrPlay('bone-crack'); }, 20000));
+            t.push(setInterval(() => {
+                if (HORROR.enabled && HORROR.dread > 35 && Math.random() < 0.22 + HORROR.dread / 300) {
+                    hrCreep(Math.random() < 0.5 ? 'left' : 'right', 3800);
+                    hrPlay('breath');
+                }
+            }, 13000));
             HORROR.ambTimers = HORROR.ambTimers.concat(t);
         }
 
@@ -810,6 +1069,7 @@ HORROR_JS = r'''
             noiseOn = false;
             hrDroneStop();
             hrMusicDuck(1);
+            const c = document.getElementById('creeper'); if (c) c.classList.remove('creep-on');
         }
 
         function horrorCheck() {
@@ -818,14 +1078,22 @@ HORROR_JS = r'''
             HORROR.lastNode = nodeId;
             cancelHorrorTimers(); stopAmb();
             const nd = storyData[nodeId];
+            // ratchet dread up to this node's floor (tension only climbs deeper in)
+            const floor = DREAD_FLOOR[nodeId];
+            if (typeof floor === 'number' && HORROR.dread < floor) dreadSet(floor);
             if (nd && nd.is_ending) { horrorEnding(nodeId); return; }
             if (HORROR_EVENTS[nodeId]) {
                 HORROR_EVENTS[nodeId].forEach(ev => {
                     HORROR.timers.push(setTimeout(() => hrEvent(ev[0]), ev[1]));
                 });
             }
-            if (AMBIENT_NODES.indexOf(nodeId) !== -1) {
-                HORROR.timers.push(setTimeout(() => startAmb(), 1200));
+            // EVERY node now breathes with dread ambience
+            HORROR.timers.push(setTimeout(() => startAmb(), 1000));
+
+            // organic fourth-wall crash: once per playthrough, at a deep node
+            if (!HORROR.crashDone && !HORROR.crashArmed && HORROR.enabled && CRASH_NODES.indexOf(nodeId) !== -1) {
+                HORROR.crashArmed = true;
+                setTimeout(() => { if (HORROR.enabled && !HORROR.crashDone) fakeCrash(); }, 7000 + Math.random() * 3000);
             }
         }
 
@@ -837,6 +1105,123 @@ HORROR_JS = r'''
         }
 
         function triggerWake() { wakeScare(); }
+
+        // ================= FAKE SYSTEM CRASH (fourth-wall break) =================
+        const CRASH = { active: false, timers: [], keyHandler: null };
+
+        function crashScript(lang) {
+            // Each line: [text, cssClass, delayAfterMs]
+            const L = (ru, en, cls, d) => [lang === 'ru' ? ru : en, cls || '', d || 60];
+            return [
+                L('$ kobyla.exe --resume', '$ kobyla.exe --resume', '', 220),
+                L('Восстановление сеанса...', 'Restoring session...', 'c-ok', 260),
+                L('Проверка целостности памяти... OK', 'Memory integrity check... OK', 'c-ok', 160),
+                L('Загрузка нейро-профиля ИГРОКА... OK', 'Loading PLAYER neuro-profile... OK', 'c-ok', 200),
+                L('', '', '', 120),
+                L('!! НЕОБРАБОТАННОЕ ИСКЛЮЧЕНИЕ 0xC0BЫLA', '!! UNHANDLED EXCEPTION 0xC0BYLA', 'c-err', 260),
+                L('FATAL: посторонний наблюдатель в контуре рендера.', 'FATAL: foreign observer inside render loop.', 'c-err', 220),
+                L('Трассировка стека:', 'Stack trace:', 'c-warn', 120),
+                L('  at Отражение.смотреть (зеркало.sys)', '  at Reflection.watch (mirror.sys)', '', 90),
+                L('  at Ты.держишь_устройство (руки.dll)', '  at You.holding_device (hands.dll)', '', 90),
+                L('  at Твоё_дыхание (лёгкие.bio)', '  at Your_breath (lungs.bio)', '', 90),
+                L('  at ЗА_ЭКРАНОМ (0x00000000)', '  at BEHIND_THE_SCREEN (0x00000000)', 'c-err', 220),
+                L('', '', '', 200),
+                L('> Я нашла ещё одну пару глаз.', '> I found another pair of eyes.', 'c-her', 420),
+                L('> Ты думал, это только игра?', '> You thought this was only a game?', 'c-her', 460),
+                L('> Я вижу отражение твоего лица в стекле.', '> I can see your face reflected in the glass.', 'c-her', 520),
+                L('> ' + (lang === 'ru' ? 'Комната позади тебя такая тихая.' : 'The room behind you is so quiet.'),
+                  '> The room behind you is so quiet.', 'c-her', 520),
+                L('> НЕ ОБОРАЧИВАЙСЯ.', '> DO NOT TURN AROUND.', 'c-her', 620),
+                L('', '', '', 200),
+                L('Попытка аварийного завершения процесса...', 'Attempting to kill process...', 'c-warn', 240),
+                L('kill -9 kobyla  ->  ' + (lang === 'ru' ? 'ОТКАЗАНО' : 'DENIED'), 'kill -9 kobyla  ->  DENIED', 'c-err', 240),
+                L('kill -9 kobyla  ->  ' + (lang === 'ru' ? 'ОТКАЗАНО' : 'DENIED'), 'kill -9 kobyla  ->  DENIED', 'c-err', 200),
+                L('kill -9 kobyla  ->  ' + (lang === 'ru' ? 'ОНА СМЕЁТСЯ' : 'SHE IS LAUGHING'), 'kill -9 kobyla  ->  SHE IS LAUGHING', 'c-her', 360),
+                L('', '', '', 200),
+                L(lang === 'ru' ? 'ПЕРЕЗАПИСЬ ОПЕРАТОРА...' : 'OVERWRITING OPERATOR...', 'OVERWRITING OPERATOR...', 'c-err', 120),
+                L(lang === 'ru' ? 'ЗДРАВСТВУЙ.' : 'HELLO.', 'HELLO.', 'c-her', 900)
+            ];
+        }
+
+        function fakeCrash() {
+            if (CRASH.active) return;
+            if (!HORROR.enabled) { return; }
+            CRASH.active = true;
+            HORROR.crashDone = true;
+            cancelHorrorTimers(); stopAmb();
+            hrMusicDuck(0);
+            const styles = ['', 'bsod', 'panic'];
+            const style = styles[Math.floor(Math.random() * styles.length)];
+            const sc = document.getElementById('syscrash');
+            const head = document.getElementById('sc-head');
+            const body = document.getElementById('sc-body');
+            const mini = document.getElementById('sc-mini');
+            const lang = (typeof currentLang !== 'undefined') ? currentLang : 'ru';
+            body.innerHTML = ''; mini.style.opacity = 0;
+            head.textContent = style === 'bsod'
+                ? (lang === 'ru' ? ':( СИСТЕМА ОСТАНОВЛЕНА' : ':( SYSTEM HALTED')
+                : (lang === 'ru' ? 'KERNEL PANIC — НЕВОССТАНОВИМАЯ ОШИБКА' : 'KERNEL PANIC — NOT SYNCING');
+            sc.className = 'on ' + style;
+
+            // sudden hard cut: black slam + one bass hit, then the terminal
+            hrPlay('static-slam'); hrPlay('sub-boom');
+            hrFlash('white', 70);
+
+            const lines = crashScript(lang);
+            let t = 220;
+            lines.forEach((ln) => {
+                CRASH.timers.push(setTimeout(() => {
+                    const div = document.createElement('div');
+                    if (ln[1]) div.className = ln[1];
+                    div.textContent = ln[0] || '\\u00a0';
+                    // append blinking cursor to the newest line
+                    const cur = document.querySelector('#sc-body .sc-cursor');
+                    if (cur) cur.remove();
+                    const c = document.createElement('span'); c.className = 'sc-cursor';
+                    div.appendChild(document.createTextNode(' ')); div.appendChild(c);
+                    body.appendChild(div);
+                    sc.scrollTop = sc.scrollHeight;
+                    if (ln[1] === 'c-err' || ln[1] === 'c-her') { hrPlay('nails'); }
+                    else { hrPlay('whisper-name'); }
+                    if (ln[1] === 'c-her') { sc.classList.add('rgb'); setTimeout(() => sc.classList.remove('rgb'), 260); }
+                }, t));
+                t += ln[2];
+            });
+
+            // creeping unease: faint reflection of the mare fades in near the end
+            CRASH.timers.push(setTimeout(() => {
+                mini.src = MARE_IMGS['stare'];
+                mini.style.transition = 'opacity 2.4s ease';
+                mini.style.opacity = 0.55;
+                sc.classList.add('shudder');
+                hrPlay('growl');
+            }, t - 1400));
+
+            // the payoff jumpscare, then hand control back
+            CRASH.timers.push(setTimeout(() => {
+                sc.className = '';                 // kill the terminal instantly
+                document.body.classList.add('wake-mode');
+                dreadSet(100);
+                hrBlackout(300);
+                setTimeout(() => {
+                    hrPlay('impact'); hrPlay('scream'); hrPlay('sub-boom');
+                    hrMare('charge', 760);
+                    hrShake(1200, 52); hrFlash('red', 460); hrStrobe(6); noiseStorm(1200);
+                    hrDreadTextFixed(lang === 'ru' ? 'ТЕПЕРЬ ИГРАЮ Я.' : 'MY TURN TO PLAY.', 2600);
+                    setTimeout(() => { hrMare('eye', 200); hrPlay('shriek'); hrFlash('white', 150); hrShake(560, 26); }, 440);
+                    setTimeout(() => { hrMare('teeth', 240); hrPlay('roar'); hrFlash('red', 260); hrShake(680, 30); }, 1180);
+                    setTimeout(() => { hrCorner(200); hrPlay('whisper-name'); }, 2000);
+                }, 300);
+                setTimeout(() => {
+                    document.body.classList.remove('wake-mode');
+                    CRASH.active = false;
+                    hrMusicDuck(1);
+                    startAmb(); dreadSet(80);
+                }, 3200);
+            }, t + 600));
+        }
+
+        function triggerCrash() { fakeCrash(); }
 '''
 
 MUSIC_ENGINE_PATCHES = [
@@ -881,7 +1266,7 @@ def main():
     a = '<button class="btn-ctrl" id="btn-novel" onclick="openNovel()">📖 РОМАН</button>'
     assert a in h, 'header anchor not found'
     h = h.replace(a,
-                  '<button class="btn-ctrl" id="btn-screamers" onclick="toggleScreamers()">👁 СКРИМЕРЫ: ВКЛ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-wake" onclick="triggerWake()">🐴 ПОБУДИТЬ</button>\n                ' + a, 1)
+                  '<button class="btn-ctrl" id="btn-screamers" onclick="toggleScreamers()">👁 СКРИМЕРЫ: ВКЛ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-wake" onclick="triggerWake()">🐴 ПОБУДИТЬ</button>\n                <button class="btn-ctrl btn-ctrl-danger" id="btn-crash" onclick="triggerCrash()">💀 СБОЙ</button>\n                ' + a, 1)
 
     # C) overlays before <!-- Modal -->
     a = '<!-- Modal -->'
@@ -900,6 +1285,8 @@ def main():
     js = js.replace('__W__', MARE['wake']).replace('__V__', MARE['void'])
     js = js.replace('__T__', MARE['teeth']).replace('__E__', MARE['eyes']).replace('__P__', MARE['pale'])
     js = js.replace('__L__', MARE['leap']).replace('__S__', MARE['stare'])
+    js = js.replace('__SH__', MARE['shadow']).replace('__EY__', MARE['eye'])
+    js = js.replace('__FL__', MARE['flesh']).replace('__CH__', MARE['charge'])
     h = h.replace(onload, js + '\n\n        ' + onload, 1)
 
     # F) hook horrorCheck into updateUI (before ending branch)
